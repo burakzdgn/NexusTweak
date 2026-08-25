@@ -76,7 +76,25 @@ jobs:
         with:
           tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
           releaseName: ${{ startsWith(github.ref, 'refs/tags/v') && format('NexusTweak {0}', github.ref_name) || 'NexusTweak (Latest Build)' }}
-          releaseBody: 'Automated release build for NexusTweak. Download the installer for your platform below.'
+          releaseBody: 'Automated release build for NexusTweak. Download the installer or portable standalone executable for your platform below.'
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Package & Upload Standalone Portable EXE (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $releaseExe = Get-ChildItem -Path "src-tauri/target/release/*.exe" -Exclude "*.d" | Where-Object { $_.Name -match "nexus" -or $_.Name -match "Nexus" } | Select-Object -First 1
+          if ($releaseExe) {
+            Write-Host "Found compiled executable: $($releaseExe.FullName)"
+            Copy-Item $releaseExe.FullName -Destination "NexusTweak_Portable.exe" -Force
+            Compress-Archive -Path "NexusTweak_Portable.exe" -DestinationPath "NexusTweak_Portable_x64.zip" -Force
+
+            $tag = if ("${{ github.ref }}" -like "refs/tags/v*") { "${{ github.ref_name }}" } else { "latest" }
+            gh release upload $tag "NexusTweak_Portable.exe" "NexusTweak_Portable_x64.zip" --clobber
+          } else {
+            Write-Host "No standalone exe found to package."
+          }
