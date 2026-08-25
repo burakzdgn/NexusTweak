@@ -167,7 +167,12 @@ impl RuleEngine {
         let codename_lower = device.device_codename.to_lowercase();
         let product_lower = device.product_name.to_lowercase();
 
-        self.rules.iter().filter(|r| {
+        let max_supported_hz = device.display.supported_refresh_rates
+            .iter()
+            .cloned()
+            .fold(60.0f32, f32::max);
+
+        let mut matched_rules: Vec<TweakRule> = self.rules.iter().filter(|r| {
             let target = r.target_oem.to_lowercase();
             let matches_oem = match target.as_str() {
                 "generic" => true,
@@ -209,8 +214,35 @@ impl RuleEngine {
                 }
             }
 
+            // If rule is force peak refresh rate, only show it if the phone actually supports > 60Hz
+            if r.id == "gen_force_peak_refresh_rate" && max_supported_hz <= 60.0 {
+                return false;
+            }
+
             true
-        }).cloned().collect()
+        }).cloned().collect();
+
+        // Dynamically tailor the peak refresh rate rule to the device's actual max panel Hz
+        for r in matched_rules.iter_mut() {
+            if r.id == "gen_force_peak_refresh_rate" && max_supported_hz > 60.0 {
+                let max_hz_int = max_supported_hz.round() as u32;
+                r.name = format!("Force Peak {}Hz Refresh Rate", max_hz_int);
+                r.description = format!(
+                    "Sets min_refresh_rate equal to {}Hz preventing the screen from dropping to 60Hz during scrolling.",
+                    max_hz_int
+                );
+                r.apply_commands = vec![
+                    format!("settings put system peak_refresh_rate {:.1}", max_supported_hz),
+                    format!("settings put system min_refresh_rate {:.1}", max_supported_hz),
+                ];
+                r.revert_commands = vec![
+                    "settings delete system min_refresh_rate".to_string(),
+                    format!("settings put system peak_refresh_rate {:.1}", max_supported_hz),
+                ];
+            }
+        }
+
+        matched_rules
     }
 
     /// Enhance packages with whitelist flags and bloatware categories
@@ -264,12 +296,21 @@ impl RuleEngine {
             recommendations.push("Speed up UI animations to 0.5x for snappier performance".to_string());
         }
 
-        // 2. Check refresh rate
-        if device.display.refresh_rate_hz >= 120.0 {
-            if applied_tweaks.contains(&"gen_force_peak_refresh_rate".to_string()) {
+        // 2. Check refresh rate dynamically based on device display capability
+        let max_supported_hz = device.display.supported_refresh_rates
+            .iter()
+            .cloned()
+            .fold(60.0f32, f32::max);
+
+        if max_supported_hz > 60.0 {
+            let is_high_hz_active = device.display.refresh_rate_hz >= (max_supported_hz - 2.0);
+            if is_high_hz_active || applied_tweaks.contains(&"gen_force_peak_refresh_rate".to_string()) {
                 animation_score = (animation_score + 100) / 2;
             } else {
-                recommendations.push("Force 120Hz display refresh rate to eliminate frame drops".to_string());
+                recommendations.push(format!(
+                    "Force {}Hz display refresh rate to eliminate frame drops",
+                    max_supported_hz.round() as u32
+                ));
             }
         }
 

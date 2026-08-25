@@ -155,10 +155,10 @@ impl DeviceScanner {
         let mut width: u32 = 1080;
         let mut height: u32 = 2400;
         let mut density_dpi: u32 = 420;
-        let mut refresh_rate: f32 = 120.0;
-        let mut supported_rates = vec![60.0, 90.0, 120.0];
+        let mut current_fps: f32 = 60.0;
+        let mut supported_rates: Vec<f32> = Vec::new();
 
-        // Parse `wm size` (e.g. "Physical size: 1440x3120" or "Override size: 1080x2340")
+        // 1. Parse `wm size` (e.g. "Physical size: 1080x2400" or "Override size: 1080x2400")
         let size_re = Regex::new(r"(\d+)x(\d+)").unwrap();
         for line in size_res.stdout.lines() {
             if let Some(caps) = size_re.captures(line) {
@@ -167,7 +167,7 @@ impl DeviceScanner {
             }
         }
 
-        // Parse `wm density` (e.g. "Physical density: 500" or "Override density: 450")
+        // 2. Parse `wm density` (e.g. "Physical density: 440" or "Override density: 440")
         let dens_re = Regex::new(r"density:\s*(\d+)").unwrap();
         for line in density_res.stdout.lines() {
             if let Some(caps) = dens_re.captures(line) {
@@ -175,28 +175,53 @@ impl DeviceScanner {
             }
         }
 
-        // Parse `dumpsys display` for refresh rates (e.g. "fps=120.00" or "refreshRate 120.0")
-        let fps_re = Regex::new(r"(?:fps=|refreshRate\s*=\s*|refreshRate\s+)(\d+(?:\.\d+)?)").unwrap();
+        // 3. Parse `dumpsys display` for supported modes and active mode
+        // Example: DisplayDeviceInfo{... modeId 2, defaultModeId 1, supportedModes [{id=1, ... fps=90.0}, {id=2, ... fps=60.000004}] ...}
+        let mode_map_re = Regex::new(r"\{id=(\d+)[^}]*fps=([0-9.]+)").unwrap();
+        let mut modes_map: HashMap<u32, f32> = HashMap::new();
+
         for line in display_res.stdout.lines() {
-            if let Some(caps) = fps_re.captures(line) {
-                if let Ok(fps) = caps[1].parse::<f32>() {
-                    if fps >= 30.0 && fps <= 240.0 {
-                        refresh_rate = fps;
-                        if !supported_rates.contains(&fps) {
-                            supported_rates.push(fps);
+            for caps in mode_map_re.captures_iter(line) {
+                if let (Ok(id), Ok(raw_fps)) = (caps[1].parse::<u32>(), caps[2].parse::<f32>()) {
+                    let rounded_fps = (raw_fps * 10.0).round() / 10.0;
+                    let clean_fps = if (rounded_fps - rounded_fps.round()).abs() < 0.1 {
+                        rounded_fps.round()
+                    } else {
+                        rounded_fps
+                    };
+                    if clean_fps >= 30.0 && clean_fps <= 240.0 {
+                        modes_map.insert(id, clean_fps);
+                        if !supported_rates.contains(&clean_fps) {
+                            supported_rates.push(clean_fps);
                         }
                     }
                 }
             }
         }
 
+        // Detect active modeId from DisplayDeviceInfo or mBaseDisplayInfo
+        let active_mode_re = Regex::new(r"modeId\s+(\d+)").unwrap();
+        if let Some(caps) = active_mode_re.captures(&display_res.stdout) {
+            if let Ok(active_id) = caps[1].parse::<u32>() {
+                if let Some(&fps) = modes_map.get(&active_id) {
+                    current_fps = fps;
+                }
+            }
+        } else if let Some(&max_rate) = supported_rates.iter().max_by(|a, b| a.partial_cmp(b).unwrap()) {
+            current_fps = max_rate;
+        }
+
+        // Fallback if no modes were parsed
+        if supported_rates.is_empty() {
+            supported_rates.push(60.0);
+        }
         supported_rates.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
         DisplayInfo {
             width,
             height,
             density_dpi,
-            refresh_rate_hz: refresh_rate,
+            refresh_rate_hz: current_fps,
             supported_refresh_rates: supported_rates,
         }
     }
