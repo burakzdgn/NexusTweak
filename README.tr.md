@@ -97,33 +97,38 @@ Tüm işlemler öncesinde **otomatik anlık görüntü (snapshot)** alınır, de
 ### ⬇️ 9. 1-Tıkla Otomatik Google ADB İndirici
 - Sistemde ADB kurulu olmadığında resmi Google Android sunucularından platform-tools paketini tek tıkla indirip otomatik yapılandırır.
 
-### 🌐 10. Çoklu Dil Desteği (i18n)
-- Arayüz üzerinden **Türkçe (TR)** ve **English (EN)** dilleri arasında anında geçiş.
+### 📊 10. Dinamik Sistem Optimizasyon Endeksi (100/100 Kontrol Listesi)
+- **Canlı Donanım ve Ayar Puanlaması:** Arayüz Akıcılığı, Gizlilik & DNS, Pil & Bekleme ve Debloat Temizliği alt puanlarının gerçek zamanlı hesaplanması.
+- **100/100 Eksik Adımlar Listesi:** Kontrol panelinde tam 100/100 skora ulaşmak için gereken eksik optimizasyonları kategori bazında gösteren etkileşimli kontrol listesi.
+- **Tek Tıkla Yönlendirme:** İlgili tavsiyeye tıklayarak doğrudan optimizasyon alanına geçiş yapabilme.
+
+### 💡 11. Detaylı İnteraktif Optimizasyon Rehberleri
+- Her optimizasyon kartında bulunan **`(i)` Detay Butonu** ile açılan kapsamlı rehber:
+  - *Arka planda nasıl çalışır?*
+  - *Sağladığı somut kazanımlar ve pil/performans artışı*
+  - *Dikkat edilmesi gerekenler ve olası yan etkiler*
+  - *Geri alınabilirlik durumu ve güvenlik derecesi*
+  - *Çalıştırılan birebir ADB shell komutları*
+
+### ⚡ 12. Evrensel Otomatik Senkronizasyon & Durum Filtresi
+- **Durum Filtre Sekmeleri:** Optimizasyonları `Tümü`, `Uygulanmayanlar` ve `Uygulananlar (Aktif)` olarak filtreleyebilme.
+- **Evrensel Otomatik Senkronizasyon:** Debloat, profil uygulama, geri yükleme (rollback) veya ekran ayarları yapıldığında cihaz durumunun, kuralların ve skorun anında baştan taranması.
+- **Akıllı Bildirimler (Toasts):** Bağımsız 3.8s geri sayım süresi, görsel ilerleme çubuğu, üzerine gelince duraklama ve tek tıkla kapatma.
 
 ---
 
-## 📱 OEM Destek Tablosu
+## 💾 İndirme & Sürüm Seçenekleri (Kurulum Gerekir mi?)
 
-| Üretici / Arayüz | Özel Debloat & Tweakler | Risk Seviyesi | Durum |
-| :--- | :--- | :--- | :---: |
-| **Samsung One UI** | Bixby Voice/Agent, GOS Bypass, Knox Analytics, RAM Plus Disable, Samsung Pay | `Safe` / `Moderate` | ✅ Destekleniyor |
-| **Xiaomi HyperOS / MIUI** | MSA (System Ads), Joyose Throttler, GetApps Store, Wallpaper Carousel, Mi Video | `Safe` / `Moderate` | ✅ Destekleniyor |
-| **Google Pixel** | Pixel Tips, Sound Search/Now Playing, Device Health Services, Columbus Gestures | `Safe` / `Moderate` | ✅ Destekleniyor |
-| **Generic Android AOSP** | 0.5x Animasyonlar, 120Hz Force Peak, AdGuard/Cloudflare DNS, Agresif Doze | `Safe` / `Moderate` | ✅ Destekleniyor |
+NexusTweak'in [GitHub Releases](https://github.com/burakzdgn/NexusTweak/releases) sayfasından indirebileceğiniz dosya türleri:
 
----
+| Dosya Türü | Açıklama | Kurulum Gerekir mi? |
+| :--- | :--- | :---: |
+| **`NexusTweak.exe` (Portable)** | Kurulum gerektirmeyen bağımsız tek dosya. İndirip doğrudan çift tıklayarak çalıştırabilirsiniz. | ❌ Kurulum Gerektirmez |
+| **`NexusTweak_x64-setup.exe` (Setup)** | Masaüstü kısayolu ve Başlat menüsü ekleyen 1-tıkla modern kurulum sihirbazı. | ✅ Hızlı Kurulum |
+| **`NexusTweak_x64_en-US.msi` (MSI)** | Kurumsal veya otomatik dağıtımlar için standart Windows Installer paketi. | ✅ Standart MSI |
 
-## 📥 İndirme ve Kurulum (Son Kullanıcılar İçin)
-
-NexusTweak'i kullanmak için Node.js, Rust veya herhangi bir geliştirici aracı kurmanıza **gerek yoktur**!
-
-1. En son **[GitHub Releases](https://github.com/burakzdgn/NexusTweak/releases)** sayfasına gidin.
-2. İşletim sisteminize uygun hazır paketi indirin:
-   - **Windows:** `NexusTweak-Setup.exe` (veya `.msi`)
-   - **macOS:** `NexusTweak.dmg`
-   - **Linux:** `NexusTweak.deb` / `NexusTweak.AppImage`
-3. İndirdiğiniz dosyayı çalıştırın ve Android cihazınızı USB ile bağlayın (**USB Hata Ayıklama** açık olmalıdır).
-4. *İpucu:* Bilgisayarınızda ADB kurulu değilse, NexusTweak'in içindeki **1-Tıkla Otomatik Google ADB İndirici** gerekli araçları arka planda otomatik olarak yapılandırır.
+> [!TIP]
+> Bilgisayarınıza hiçbir şey kurmak istemiyorsanız doğrudan **Portable `NexusTweak.exe`** dosyasını indirip anında optimizasyona başlayabilirsiniz!
 
 ---
 

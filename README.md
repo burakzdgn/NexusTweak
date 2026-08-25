@@ -99,8 +99,38 @@ Built with **Tauri v2 (Rust backend)** and a **React 18 + TypeScript + Tailwind 
 ### ⬇️ 9. 1-Click Google ADB Platform-Tools Downloader
 - Detects if ADB is missing on the system and automatically downloads official Google platform-tools archives directly into `binaries/platform-tools/`.
 
-### 🌐 10. Multi-Language Localization (i18n)
-- Seamless real-time language switching between **English (EN)** and **Türkçe (TR)**.
+### 📊 10. Dynamic Optimization Health Index (100/100 Checklist)
+- **Real-Time Hardware & Setting Scoring:** Live calculation of UI Fluidity, Privacy & DNS, Battery & Standby, and Debloat Cleanliness sub-scores.
+- **100/100 Action Checklist:** Categorized recommendations on the dashboard showing the exact steps required to reach a perfect 100/100 score.
+- **1-Click Navigation:** Directly navigate to or apply the required optimization from the dashboard card.
+
+### 💡 11. Interactive In-Depth Optimization Guides
+- Every tweak card includes an **`(i)` Details Button** opening a comprehensive modal explaining:
+  - *How it works under the hood*
+  - *Expected benefits & battery/performance gains*
+  - *Important caveats or considerations*
+  - *Reversibility and safety level*
+  - *Exact ADB shell commands executed*
+
+### ⚡ 12. Universal Auto-Synchronization & Status Filter Tabs
+- **Status Filter Tabs:** Filter tweaks by `All`, `Unapplied (Pending)`, or `Applied (Active)` to easily manage your device state.
+- **Universal Auto-Sync:** Performing any action (tweak, debloat, profile, rollback, display change) automatically triggers a live re-evaluation of rules, packages, battery telemetry, and health scores.
+- **Smart Toast Notifications:** Per-item 3.8s countdown timer with animated progress line, hover-to-pause, and instant dismissal.
+
+---
+
+## 💾 Installation & Release Types
+
+When downloading NexusTweak from the [Releases](https://github.com/burakzdgn/NexusTweak/releases) page, you have the following options:
+
+| File Type | Description | Installation Needed? |
+| :--- | :--- | :---: |
+| **`NexusTweak.exe` (Portable)** | Standalone executable. Run directly from any folder or USB drive. | ❌ No installation |
+| **`NexusTweak_x64-setup.exe` (NSIS)** | Modern 1-click Windows installer with Desktop shortcut and Start menu entry. | ✅ Standard Wizard |
+| **`NexusTweak_x64_en-US.msi` (MSI)** | Windows Installer package suitable for automated or enterprise deployments. | ✅ Standard MSI |
+
+> [!TIP]
+> If you prefer not to install anything on your PC, simply download the **Portable `NexusTweak.exe`**, double-click it, and start optimizing immediately!
 
 ---
 
