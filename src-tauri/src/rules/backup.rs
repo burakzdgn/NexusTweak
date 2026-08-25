@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
+use std::collections::HashSet;
 use chrono::Utc;
 use crate::adb::client::AdbClient;
 use crate::adb::commands::AdbCommands;
@@ -177,13 +178,35 @@ impl BackupManager {
             }
         }
 
-        // 4. Re-enable any packages that were uninstalled or disabled
-        for pkg in snapshot.disabled_packages.iter() {
-            if let Ok(res) = AdbCommands::enable_package(client, serial, pkg).await {
-                results.push(res);
+        // 4. Restore Package States (Diff between current live state and snapshot)
+        let current_disabled_res = client.shell(serial, "pm list packages -d").await.unwrap_or_default();
+        let mut current_disabled = HashSet::new();
+        for line in current_disabled_res.stdout.lines() {
+            if let Some(pkg) = line.trim().strip_prefix("package:") {
+                current_disabled.insert(pkg.trim().to_string());
             }
-            if let Ok(res) = AdbCommands::restore_package_user0(client, serial, pkg).await {
-                results.push(res);
+        }
+
+        let snapshot_disabled: HashSet<String> = snapshot.disabled_packages.into_iter().collect();
+
+        // Any package currently disabled that was active in the snapshot should be re-enabled
+        for pkg in &current_disabled {
+            if !snapshot_disabled.contains(pkg) {
+                if let Ok(res) = AdbCommands::enable_package(client, serial, pkg).await {
+                    results.push(res);
+                }
+                if let Ok(res) = AdbCommands::restore_package_user0(client, serial, pkg).await {
+                    results.push(res);
+                }
+            }
+        }
+
+        // Any package that was disabled at snapshot time should be disabled
+        for pkg in &snapshot_disabled {
+            if !current_disabled.contains(pkg) {
+                if let Ok(res) = AdbCommands::disable_package(client, serial, pkg).await {
+                    results.push(res);
+                }
             }
         }
 
