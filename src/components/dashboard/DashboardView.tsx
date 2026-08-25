@@ -1,10 +1,12 @@
 import React from 'react';
 import { useDeviceStore } from '../../stores/useDeviceStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 import { DeviceHeroCard } from './DeviceHeroCard';
 import { MetricGauges } from './MetricGauges';
 import { BatteryHealthCard } from './BatteryHealthCard';
 import { OptimizationScoreCard } from './OptimizationScoreCard';
 import { QuickActionGrid } from './QuickActionGrid';
+import { NoDeviceConnectedView } from './NoDeviceConnectedView';
 import { NavTab } from '../layout/Sidebar';
 
 interface DashboardViewProps {
@@ -12,21 +14,26 @@ interface DashboardViewProps {
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
-  const { activeDevice, healthScore, isLoading } = useDeviceStore();
+  const { activeDevice, healthScore, isLoading, isScanning, devices } = useDeviceStore();
+  const t = useLanguageStore((s) => s.t);
 
-  if (isLoading || !activeDevice) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <div className="w-12 h-12 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />
-        <h3 className="text-base font-semibold text-slate-200 mt-4">
-          Reading Device Architecture...
-        </h3>
-        <p className="text-xs text-slate-400 mt-1 max-w-sm">
-          Extracting SoC parameters, display panel refresh rates, battery health, and system
-          properties.
-        </p>
-      </div>
-    );
+  // If no devices found and not currently loading/scanning, show waiting guide
+  if (!activeDevice) {
+    if (isLoading || isScanning) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+          <div className="w-12 h-12 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />
+          <h3 className="text-base font-semibold text-slate-200 mt-4">
+            {t.device_architecture}
+          </h3>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm">
+            {t.device_architecture_desc}
+          </p>
+        </div>
+      );
+    }
+
+    return <NoDeviceConnectedView />;
   }
 
   return (

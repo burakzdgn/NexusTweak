@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Wifi, Plus, Link, Unlink } from 'lucide-react';
+import { Wifi, Link } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { useLogStore } from '../../stores/useLogStore';
 import { useDeviceStore } from '../../stores/useDeviceStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { AdbBridge } from '../../services/adbBridge';
 
 export const WifiAdbPairing: React.FC = () => {
   const [ipAddress, setIpAddress] = useState('192.168.1.100');
@@ -11,17 +13,26 @@ export const WifiAdbPairing: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const addLog = useLogStore((s) => s.addLog);
   const fetchDevices = useDeviceStore((s) => s.fetchDevices);
+  const t = useLanguageStore((s) => s.t);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     const target = `${ipAddress}:${port}`;
     addLog('info', `Connecting to wireless ADB at ${target}...`);
 
-    setTimeout(async () => {
+    try {
+      const res = await AdbBridge.connectWifi(target);
+      if (res.success) {
+        addLog('success', `Connected to wireless device ${target}`, res.stdout);
+        await fetchDevices();
+      } else {
+        addLog('error', `Failed to connect to ${target}`, res.stderr);
+      }
+    } catch (e) {
+      addLog('error', `Wi-Fi connect failed`, String(e));
+    } finally {
       setIsConnecting(false);
-      addLog('success', `Connected to wireless device ${target}`);
-      await fetchDevices();
-    }, 800);
+    }
   };
 
   return (
@@ -31,9 +42,9 @@ export const WifiAdbPairing: React.FC = () => {
           <Wifi className="w-5 h-5" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-white">Wireless ADB Connection</h3>
+          <h3 className="text-sm font-bold text-white">{t.wifi_pairing_title}</h3>
           <p className="text-xs text-slate-400">
-            Connect to Android devices over local Wi-Fi without a physical USB cable.
+            {t.wifi_pairing_desc}
           </p>
         </div>
       </div>
@@ -41,7 +52,7 @@ export const WifiAdbPairing: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="sm:col-span-2">
           <label className="block text-xs font-medium text-slate-300 mb-1.5">
-            Device IP Address:
+            {t.device_ip}
           </label>
           <input
             type="text"
@@ -54,7 +65,7 @@ export const WifiAdbPairing: React.FC = () => {
 
         <div>
           <label className="block text-xs font-medium text-slate-300 mb-1.5">
-            ADB Port:
+            {t.adb_port}
           </label>
           <input
             type="text"
@@ -68,7 +79,7 @@ export const WifiAdbPairing: React.FC = () => {
 
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#1e2338]">
         <span className="text-[11px] text-slate-400">
-          * Enable 'Wireless Debugging' in Android Developer Options first
+          {t.wifi_note}
         </span>
         <Button
           variant="primary"
@@ -77,7 +88,7 @@ export const WifiAdbPairing: React.FC = () => {
           isLoading={isConnecting}
           leftIcon={<Link className="w-4 h-4" />}
         >
-          Connect Wireless ADB
+          {t.connect_wifi_btn}
         </Button>
       </div>
     </Card>

@@ -84,12 +84,19 @@ export const useDebloatStore = create<DebloatState>((set, get) => ({
     set({ whitelistWarningTarget: pkg }),
 
   debloatSinglePackage: async (pkg: string, forceOverride = false) => {
-    const activeSerial = useDeviceStore.getState().activeSerial;
-    if (!activeSerial) return false;
+    const activeDevice = useDeviceStore.getState().activeDevice;
+    if (!activeDevice) return false;
 
     set({ isProcessing: true });
     try {
-      const res = await AdbBridge.debloatPackage(activeSerial, pkg, forceOverride);
+      const deviceName = `${activeDevice.manufacturer} ${activeDevice.model}`;
+      const res = await AdbBridge.debloatPackage(
+        activeDevice.serial,
+        deviceName,
+        pkg,
+        forceOverride,
+        true // Auto snapshot
+      );
       useLogStore.getState().addLog('success', `Debloated: ${pkg}`, res.stdout);
 
       set((state) => ({
@@ -139,15 +146,23 @@ export const useDebloatStore = create<DebloatState>((set, get) => ({
 
   debloatSelectedBatch: async () => {
     const { selectedPackages } = get();
-    const activeSerial = useDeviceStore.getState().activeSerial;
-    if (!activeSerial || selectedPackages.size === 0) return false;
+    const activeDevice = useDeviceStore.getState().activeDevice;
+    if (!activeDevice || selectedPackages.size === 0) return false;
 
     set({ isProcessing: true });
     const pkgs = Array.from(selectedPackages);
+    const deviceName = `${activeDevice.manufacturer} ${activeDevice.model}`;
+
+    // Take one master snapshot before the batch
+    await AdbBridge.createBackup(
+      activeDevice.serial,
+      deviceName,
+      `Auto-Backup before debloating ${pkgs.length} packages`
+    );
 
     for (const pkg of pkgs) {
       try {
-        await AdbBridge.debloatPackage(activeSerial, pkg, false);
+        await AdbBridge.debloatPackage(activeDevice.serial, deviceName, pkg, false, false);
         useLogStore.getState().addLog('success', `Batch Debloat: ${pkg}`, 'Disabled');
       } catch (err: unknown) {
         useLogStore.getState().addLog(

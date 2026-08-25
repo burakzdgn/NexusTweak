@@ -100,6 +100,7 @@ pub struct TweakRule {
 pub struct BackupSnapshot {
     pub id: String,
     pub device_serial: String,
+    pub device_name: String,
     pub timestamp: String,
     pub note: String,
     pub settings_global: std::collections::HashMap<String, String>,
@@ -108,6 +109,7 @@ pub struct BackupSnapshot {
     pub disabled_packages: Vec<String>,
     pub uninstalled_packages: Vec<String>,
     pub applied_tweak_ids: Vec<String>,
+    pub target_properties_diff: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

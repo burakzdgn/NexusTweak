@@ -1,16 +1,14 @@
 import React from 'react';
 import {
-  ShieldCheck,
-  ShieldAlert,
   Trash2,
   RotateCcw,
   Lock,
-  Sparkles,
   Package,
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { PackageInfo } from '../../types/debloat';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface DebloatTableProps {
   packages: PackageInfo[];
@@ -29,25 +27,27 @@ export const DebloatTable: React.FC<DebloatTableProps> = ({
   onRestore,
   isProcessing,
 }) => {
+  const t = useLanguageStore((s) => s.t);
+
   return (
     <div className="bg-[#11131f] border border-[#202538] rounded-2xl overflow-hidden shadow-xl">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-[#202538] bg-[#0c0e17]/80 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              <th className="py-3 px-4 w-12 text-center">Select</th>
-              <th className="py-3 px-4">Application & Package Name</th>
-              <th className="py-3 px-4">Category & Role</th>
-              <th className="py-3 px-4">Risk Level</th>
-              <th className="py-3 px-4">State</th>
-              <th className="py-3 px-4 text-right">Actions</th>
+              <th className="py-3 px-4 w-12 text-center">{t.th_select}</th>
+              <th className="py-3 px-4">{t.th_app_name}</th>
+              <th className="py-3 px-4">{t.th_category}</th>
+              <th className="py-3 px-4">{t.th_risk}</th>
+              <th className="py-3 px-4">{t.th_state}</th>
+              <th className="py-3 px-4 text-right">{t.th_actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#1e2338] text-xs">
             {packages.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-12 text-center text-slate-500">
-                  No packages found matching the active filter.
+                  {t.no_matching_tweaks}
                 </td>
               </tr>
             ) : (
@@ -147,12 +147,12 @@ export const DebloatTable: React.FC<DebloatTableProps> = ({
                       {pkg.is_enabled ? (
                         <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full text-[11px] font-medium border border-emerald-500/20">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                          Enabled
+                          {t.state_enabled}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full text-[11px] font-medium border border-slate-700">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                          Disabled
+                          {t.state_disabled}
                         </span>
                       )}
                     </td>
@@ -168,7 +168,7 @@ export const DebloatTable: React.FC<DebloatTableProps> = ({
                           leftIcon={<Trash2 className="w-3 h-3" />}
                           className="text-xs py-1"
                         >
-                          Debloat
+                          {t.debloat_btn}
                         </Button>
                       ) : (
                         <Button
@@ -179,7 +179,7 @@ export const DebloatTable: React.FC<DebloatTableProps> = ({
                           leftIcon={<RotateCcw className="w-3 h-3 text-cyan-400" />}
                           className="text-xs py-1"
                         >
-                          Restore
+                          {t.restore_pkg_btn}
                         </Button>
                       )}
                     </td>

@@ -7,6 +7,7 @@ import { TweaksView } from './components/tweaks/TweaksView';
 import { DebloatView } from './components/debloat/DebloatView';
 import { BackupsView } from './components/backup/BackupsView';
 import { TerminalView } from './components/terminal/TerminalView';
+import { TerminalDrawer } from './components/terminal/TerminalDrawer';
 import { SettingsView } from './components/settings/SettingsView';
 import { ToastContainer } from './components/ui/Toast';
 import { useAdb } from './hooks/useAdb';
@@ -14,7 +15,7 @@ import { useLogStore } from './stores/useLogStore';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
-  const { isScanning } = useAdb();
+  useAdb();
   const logs = useLogStore((s) => s.logs);
 
   const renderActiveView = () => {
@@ -53,6 +54,9 @@ export const App: React.FC = () => {
 
         {/* Floating Batch Action Bottom Bar */}
         <BatchActionBar currentTab={activeTab} />
+
+        {/* Interactive Bottom Slide-Up Terminal Drawer (Triggered from Top Right Header) */}
+        <TerminalDrawer />
 
         {/* Floating Action Toasts */}
         <ToastContainer logs={logs} />

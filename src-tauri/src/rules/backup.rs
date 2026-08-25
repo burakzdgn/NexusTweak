@@ -23,6 +23,7 @@ impl BackupManager {
         &self,
         client: &AdbClient,
         serial: &str,
+        device_name: &str,
         note: &str,
         applied_tweaks: Vec<String>,
     ) -> Result<BackupSnapshot, String> {
@@ -53,9 +54,38 @@ impl BackupManager {
             }
         }
 
+        // Build target properties summary diff list
+        let mut target_properties_diff = Vec::new();
+        if let Some(scale) = settings_global.get("window_animation_scale") {
+            target_properties_diff.push(format!("global.window_animation_scale = {}", scale));
+        }
+        if let Some(scale) = settings_global.get("transition_animation_scale") {
+            target_properties_diff.push(format!("global.transition_animation_scale = {}", scale));
+        }
+        if let Some(scale) = settings_global.get("animator_duration_scale") {
+            target_properties_diff.push(format!("global.animator_duration_scale = {}", scale));
+        }
+        if let Some(dns) = settings_global.get("private_dns_mode") {
+            target_properties_diff.push(format!("global.private_dns_mode = {}", dns));
+        }
+        if let Some(dns_spec) = settings_global.get("private_dns_specifier") {
+            target_properties_diff.push(format!("global.private_dns_specifier = {}", dns_spec));
+        }
+        if let Some(peak_hz) = settings_system.get("peak_refresh_rate") {
+            target_properties_diff.push(format!("system.peak_refresh_rate = {} Hz", peak_hz));
+        }
+        if let Some(min_hz) = settings_system.get("min_refresh_rate") {
+            target_properties_diff.push(format!("system.min_refresh_rate = {} Hz", min_hz));
+        }
+
+        for pkg in &disabled_packages {
+            target_properties_diff.push(format!("disabled_package: {}", pkg));
+        }
+
         let snapshot = BackupSnapshot {
             id: file_id.clone(),
             device_serial: serial.to_string(),
+            device_name: device_name.to_string(),
             timestamp,
             note: note.to_string(),
             settings_global,
@@ -64,6 +94,7 @@ impl BackupManager {
             disabled_packages,
             uninstalled_packages,
             applied_tweak_ids: applied_tweaks,
+            target_properties_diff,
         };
 
         // Write snapshot to local disk

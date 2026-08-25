@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { AdbDevice, DeviceInfo, HealthScore } from '../types/device';
 import { AdbBridge } from '../services/adbBridge';
+import { useLogStore } from './useLogStore';
 
 interface DeviceState {
   devices: AdbDevice[];
@@ -9,14 +10,16 @@ interface DeviceState {
   healthScore: HealthScore | null;
   isLoading: boolean;
   isScanning: boolean;
-  isMockMode: boolean;
+  isAdbAvailable: boolean;
+  isInstallingAdb: boolean;
   error: string | null;
 
   // Actions
   fetchDevices: () => Promise<void>;
   selectDevice: (serial: string) => Promise<void>;
   refreshActiveDevice: () => Promise<void>;
-  setMockMode: (enabled: boolean) => void;
+  checkAdbInstalled: () => Promise<boolean>;
+  downloadAndInstallAdb: () => Promise<boolean>;
   updateHealthScore: (appliedTweaks: string[]) => Promise<void>;
   rebootDevice: (mode?: string) => Promise<void>;
 }
@@ -28,12 +31,50 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   healthScore: null,
   isLoading: false,
   isScanning: false,
-  isMockMode: AdbBridge.isMockMode(),
+  isAdbAvailable: true,
+  isInstallingAdb: false,
   error: null,
+
+  checkAdbInstalled: async () => {
+    try {
+      const isOk = await AdbBridge.checkAdbStatus();
+      set({ isAdbAvailable: isOk });
+      return isOk;
+    } catch {
+      set({ isAdbAvailable: false });
+      return false;
+    }
+  },
+
+  downloadAndInstallAdb: async () => {
+    set({ isInstallingAdb: true });
+    useLogStore.getState().addLog('info', 'Downloading official Google Platform-Tools (ADB)...');
+
+    try {
+      const installedPath = await AdbBridge.downloadInstallAdb();
+      set({ isInstallingAdb: false, isAdbAvailable: true });
+      useLogStore.getState().addLog(
+        'success',
+        'ADB installed successfully',
+        `Configured binary path: ${installedPath}`
+      );
+      await get().fetchDevices();
+      return true;
+    } catch (err: unknown) {
+      set({ isInstallingAdb: false });
+      useLogStore.getState().addLog(
+        'error',
+        'Failed to download ADB',
+        err instanceof Error ? err.message : String(err)
+      );
+      return false;
+    }
+  },
 
   fetchDevices: async () => {
     set({ isScanning: true, error: null });
     try {
+      await get().checkAdbInstalled();
       const devices = await AdbBridge.getDevices();
       set({ devices, isScanning: false });
 
@@ -76,12 +117,6 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     } catch (err) {
       console.error('Refresh device failed:', err);
     }
-  },
-
-  setMockMode: (enabled: boolean) => {
-    AdbBridge.setMockMode(enabled);
-    set({ isMockMode: enabled });
-    get().fetchDevices();
   },
 
   updateHealthScore: async (appliedTweaks: string[]) => {

@@ -11,12 +11,15 @@ import {
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { DeviceInfo } from '../../types/device';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface DeviceHeroCardProps {
   device: DeviceInfo;
 }
 
 export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
+  const t = useLanguageStore((s) => s.t);
+
   const getOemGradient = () => {
     const oem = device.manufacturer.toLowerCase();
     if (oem.includes('samsung')) return 'from-blue-600/20 via-cyan-500/10 to-transparent';
@@ -40,11 +43,6 @@ export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
                 <h2 className="text-xl font-bold text-white tracking-wide">
                   {device.model}
                 </h2>
-                {device.is_mock && (
-                  <Badge variant="purple" size="sm">
-                    Simulated
-                  </Badge>
-                )}
               </div>
               <p className="text-xs text-slate-400 font-mono mt-0.5">
                 {device.manufacturer} • Codename: {device.device_codename} • Build:{' '}
@@ -89,7 +87,7 @@ export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-[#1e2338]">
           <div>
             <span className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-              <Cpu className="w-3.5 h-3.5 text-cyan-400" /> SoC Processor
+              <Cpu className="w-3.5 h-3.5 text-cyan-400" /> {t.soc_processor}
             </span>
             <p className="text-xs font-semibold text-slate-200 mt-1 truncate">
               {device.soc_platform}
@@ -98,7 +96,7 @@ export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
 
           <div>
             <span className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-              <Layers className="w-3.5 h-3.5 text-purple-400" /> Display Panel
+              <Layers className="w-3.5 h-3.5 text-purple-400" /> {t.display_panel}
             </span>
             <p className="text-xs font-semibold text-slate-200 mt-1">
               {device.display.width} × {device.display.height} @ {device.display.refresh_rate_hz}Hz
@@ -107,7 +105,7 @@ export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
 
           <div>
             <span className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" /> Security Patch
+              <Calendar className="w-3.5 h-3.5 text-emerald-400" /> {t.security_patch}
             </span>
             <p className="text-xs font-semibold text-slate-200 mt-1">
               {device.security_patch}
@@ -116,13 +114,13 @@ export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
 
           <div>
             <span className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Root Access
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> {t.root_access}
             </span>
             <p className="text-xs font-semibold text-slate-200 mt-1">
               {device.is_rooted ? (
-                <span className="text-rose-400">Rooted (SuperSU / Magisk)</span>
+                <span className="text-rose-400">{t.rooted}</span>
               ) : (
-                <span className="text-emerald-400">Standard User (Unrooted)</span>
+                <span className="text-emerald-400">{t.unrooted}</span>
               )}
             </p>
           </div>

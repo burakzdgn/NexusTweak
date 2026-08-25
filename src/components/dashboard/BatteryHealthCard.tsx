@@ -2,12 +2,15 @@ import React from 'react';
 import { Battery, Flame, Zap, ShieldCheck } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { BatteryInfo } from '../../types/device';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface BatteryHealthCardProps {
   battery: BatteryInfo;
 }
 
 export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery }) => {
+  const t = useLanguageStore((s) => s.t);
+
   const getTempColor = (temp: number) => {
     if (temp > 42) return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
     if (temp > 37) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
@@ -22,8 +25,8 @@ export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery })
             <Battery className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">Battery & Power Health</h3>
-            <p className="text-[11px] text-slate-400">Real-time dumpsys battery statistics</p>
+            <h3 className="text-sm font-semibold text-slate-100">{t.battery_power_health}</h3>
+            <p className="text-[11px] text-slate-400">{t.dumpsys_battery_stats}</p>
           </div>
         </div>
 
@@ -37,7 +40,7 @@ export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery })
         <div className={`p-3 rounded-xl border ${getTempColor(battery.temperature_c)}`}>
           <div className="flex items-center gap-1.5 text-xs font-medium">
             <Flame className="w-3.5 h-3.5" />
-            <span>Core Temp</span>
+            <span>{t.core_temp}</span>
           </div>
           <p className="text-base font-bold font-mono mt-1">
             {battery.temperature_c.toFixed(1)} °C
@@ -48,7 +51,7 @@ export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery })
         <div className="p-3 rounded-xl bg-[#141724] border border-[#202538]">
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Health</span>
+            <span>{t.health}</span>
           </div>
           <p className="text-xs font-bold text-slate-200 mt-1 truncate">
             {battery.health}
@@ -59,7 +62,7 @@ export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery })
         <div className="p-3 rounded-xl bg-[#141724] border border-[#202538]">
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
             <Zap className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Voltage</span>
+            <span>{t.voltage}</span>
           </div>
           <p className="text-xs font-bold font-mono text-slate-200 mt-1">
             {(battery.voltage_mv / 1000).toFixed(2)} V
@@ -70,7 +73,7 @@ export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery })
         <div className="p-3 rounded-xl bg-[#141724] border border-[#202538]">
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
             <Battery className="w-3.5 h-3.5 text-purple-400" />
-            <span>Source</span>
+            <span>{t.power_source}</span>
           </div>
           <p className="text-xs font-bold text-slate-200 mt-1 truncate">
             {battery.plugged}

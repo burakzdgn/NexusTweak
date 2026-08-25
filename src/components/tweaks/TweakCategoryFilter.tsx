@@ -10,6 +10,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { TweakCategory, RiskLevel } from '../../types/tweaks';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface TweakCategoryFilterProps {
   activeCategory: TweakCategory;
@@ -24,15 +25,24 @@ export const TweakCategoryFilter: React.FC<TweakCategoryFilterProps> = ({
   activeRisk,
   onSelectRisk,
 }) => {
+  const t = useLanguageStore((s) => s.t);
+
   const categories: { id: TweakCategory; label: string; icon: React.ElementType }[] = [
-    { id: 'all', label: 'All Optimizations', icon: Layers },
-    { id: 'animations', label: 'UI & Animations', icon: Sparkles },
-    { id: 'display', label: 'Display & 120Hz', icon: Monitor },
-    { id: 'battery', label: 'Battery & Doze', icon: Battery },
-    { id: 'privacy', label: 'Privacy & DNS', icon: Shield },
-    { id: 'performance', label: 'Gaming & Performance', icon: Cpu },
-    { id: 'network', label: 'Network & Wi-Fi', icon: Wifi },
-    { id: 'debloat', label: 'OEM Debloat Rules', icon: Trash2 },
+    { id: 'all', label: t.cat_all, icon: Layers },
+    { id: 'animations', label: t.cat_animations, icon: Sparkles },
+    { id: 'display', label: t.cat_display, icon: Monitor },
+    { id: 'battery', label: t.cat_battery, icon: Battery },
+    { id: 'privacy', label: t.cat_privacy, icon: Shield },
+    { id: 'performance', label: t.cat_performance, icon: Cpu },
+    { id: 'network', label: t.cat_network, icon: Wifi },
+    { id: 'debloat', label: t.cat_debloat, icon: Trash2 },
+  ];
+
+  const risks: { id: RiskLevel | 'all'; label: string }[] = [
+    { id: 'all', label: t.risk_all },
+    { id: 'Safe', label: t.risk_safe },
+    { id: 'Moderate', label: t.risk_moderate },
+    { id: 'Advanced', label: t.risk_advanced },
   ];
 
   return (
@@ -62,17 +72,17 @@ export const TweakCategoryFilter: React.FC<TweakCategoryFilterProps> = ({
 
       {/* Risk Filter Buttons */}
       <div className="flex items-center gap-1 bg-[#121524] p-1 rounded-xl border border-[#202538]">
-        {(['all', 'Safe', 'Moderate', 'Advanced'] as const).map((r) => (
+        {risks.map((r) => (
           <button
-            key={r}
-            onClick={() => onSelectRisk(r)}
+            key={r.id}
+            onClick={() => onSelectRisk(r.id)}
             className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
-              activeRisk === r
+              activeRisk === r.id
                 ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            {r === 'all' ? 'All Risks' : r}
+            {r.label}
           </button>
         ))}
       </div>

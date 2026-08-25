@@ -4,6 +4,7 @@ import { Zap, X, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useTweaksStore } from '../../stores/useTweaksStore';
 import { useDebloatStore } from '../../stores/useDebloatStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface BatchActionBarProps {
   currentTab: string;
@@ -23,6 +24,8 @@ export const BatchActionBar: React.FC<BatchActionBarProps> = ({ currentTab }) =>
     debloatSelectedBatch,
     isProcessing: isDebloating,
   } = useDebloatStore();
+
+  const t = useLanguageStore((s) => s.t);
 
   const isTweaks = currentTab === 'tweaks' && selectedRuleIds.size > 0;
   const isDebloat = currentTab === 'debloat' && selectedPackages.size > 0;
@@ -62,11 +65,11 @@ export const BatchActionBar: React.FC<BatchActionBarProps> = ({ currentTab }) =>
           </div>
           <div>
             <p className="text-xs font-semibold text-white">
-              {isTweaks ? 'Optimizations Selected' : 'Packages Selected for Debloat'}
+              {isTweaks ? `${count} ${t.tweaks_selected}` : `${count} ${t.pkgs_selected}`}
             </p>
             <p className="text-[11px] text-slate-400 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              Automated safety backup included
+              {t.safeguard_desc}
             </p>
           </div>
         </div>
@@ -78,7 +81,7 @@ export const BatchActionBar: React.FC<BatchActionBarProps> = ({ currentTab }) =>
             onClick={handleClear}
             className="text-slate-400 hover:text-white"
           >
-            <X className="w-4 h-4 mr-1" /> Clear
+            <X className="w-4 h-4 mr-1" /> {t.clear_btn}
           </Button>
 
           <Button
@@ -89,8 +92,8 @@ export const BatchActionBar: React.FC<BatchActionBarProps> = ({ currentTab }) =>
             leftIcon={<Zap className="w-4 h-4" />}
           >
             {isTweaks
-              ? `Apply ${count} Tweaks Now`
-              : `Debloat ${count} Packages`}
+              ? `${t.apply_batch_tweaks} (${count})`
+              : `${t.apply_batch_debloat} (${count})`}
           </Button>
         </div>
       </motion.div>

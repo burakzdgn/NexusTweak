@@ -1,11 +1,14 @@
 import React from 'react';
 import { Terminal, Play } from 'lucide-react';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface CommandPresetsProps {
   onSelectCommand: (cmd: string) => void;
 }
 
 export const CommandPresets: React.FC<CommandPresetsProps> = ({ onSelectCommand }) => {
+  const t = useLanguageStore((s) => s.t);
+
   const presets = [
     { label: 'Check Battery', cmd: 'dumpsys battery' },
     { label: 'Screen Resolution', cmd: 'wm size' },
@@ -21,7 +24,7 @@ export const CommandPresets: React.FC<CommandPresetsProps> = ({ onSelectCommand 
     <div className="space-y-2">
       <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
         <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-        Quick Command Presets
+        {t.quick_presets}
       </h4>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {presets.map((p) => (

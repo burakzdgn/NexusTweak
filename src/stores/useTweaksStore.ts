@@ -85,13 +85,15 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
   setAutoBackup: (enabled: boolean) => set({ autoBackupEnabled: enabled }),
 
   applySingleTweak: async (ruleId: string) => {
-    const activeSerial = useDeviceStore.getState().activeSerial;
-    if (!activeSerial) return false;
+    const activeDevice = useDeviceStore.getState().activeDevice;
+    if (!activeDevice) return false;
 
     set({ isApplying: true });
     try {
+      const deviceName = `${activeDevice.manufacturer} ${activeDevice.model}`;
       const results = await AdbBridge.applyTweak(
-        activeSerial,
+        activeDevice.serial,
+        deviceName,
         ruleId,
         get().autoBackupEnabled
       );
@@ -104,7 +106,6 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
         );
       });
 
-      // Update local state
       set((state) => ({
         rules: state.rules.map((r) => (r.id === ruleId ? { ...r, isApplied: true } : r)),
         isApplying: false,
@@ -165,15 +166,17 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
 
   applySelectedBatch: async () => {
     const { selectedRuleIds, autoBackupEnabled } = get();
-    const activeSerial = useDeviceStore.getState().activeSerial;
-    if (!activeSerial || selectedRuleIds.size === 0) return false;
+    const activeDevice = useDeviceStore.getState().activeDevice;
+    if (!activeDevice || selectedRuleIds.size === 0) return false;
 
     set({ isApplying: true });
     const ids = Array.from(selectedRuleIds);
+    const deviceName = `${activeDevice.manufacturer} ${activeDevice.model}`;
 
     try {
       const results = await AdbBridge.applyBatchTweaks(
-        activeSerial,
+        activeDevice.serial,
+        deviceName,
         ids,
         autoBackupEnabled
       );

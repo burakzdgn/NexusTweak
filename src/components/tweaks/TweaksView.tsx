@@ -2,10 +2,10 @@ import React, { useMemo } from 'react';
 import { Search, ShieldCheck, CheckSquare, Square, Zap } from 'lucide-react';
 import { useTweaksStore } from '../../stores/useTweaksStore';
 import { useDeviceStore } from '../../stores/useDeviceStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 import { TweakCard } from './TweakCard';
 import { TweakCategoryFilter } from './TweakCategoryFilter';
 import { Switch } from '../ui/Switch';
-import { Button } from '../ui/Button';
 
 export const TweaksView: React.FC = () => {
   const {
@@ -28,6 +28,7 @@ export const TweaksView: React.FC = () => {
   } = useTweaksStore();
 
   const activeDevice = useDeviceStore((s) => s.activeDevice);
+  const t = useLanguageStore((s) => s.t);
 
   // Filter rules based on category, risk, and search
   const filteredRules = useMemo(() => {
@@ -39,7 +40,7 @@ export const TweaksView: React.FC = () => {
         return (
           r.name.toLowerCase().includes(q) ||
           r.description.toLowerCase().includes(q) ||
-          r.tags.some((t) => t.toLowerCase().includes(q))
+          r.tags.some((tag) => tag.toLowerCase().includes(q))
         );
       }
       return true;
@@ -65,12 +66,12 @@ export const TweaksView: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
             <Zap className="w-5 h-5 text-cyan-400" />
-            Device Optimization Rules
+            {t.device_optimization_rules}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Tailored ADB modifications for{' '}
+            {t.tailored_for}{' '}
             <span className="text-cyan-300 font-semibold">
-              {activeDevice?.model || 'Connected Device'}
+              {activeDevice?.model || 'Android'}
             </span>
           </p>
         </div>
@@ -81,7 +82,7 @@ export const TweaksView: React.FC = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search tweaks or tags..."
+              placeholder={t.search_tweaks}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-[#121524] border border-[#202538] rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
@@ -90,7 +91,7 @@ export const TweaksView: React.FC = () => {
 
           <div className="flex items-center gap-2 px-3 py-2 bg-[#121524] border border-[#202538] rounded-xl shrink-0">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-medium text-slate-300">Auto Backup</span>
+            <span className="text-xs font-medium text-slate-300">{t.auto_backup}</span>
             <Switch
               size="sm"
               checked={autoBackupEnabled}
@@ -120,12 +121,12 @@ export const TweaksView: React.FC = () => {
             <Square className="w-4 h-4 text-slate-500" />
           )}
           <span>
-            {allVisibleSelected ? 'Deselect All' : `Select All Visible (${filteredRules.length})`}
+            {allVisibleSelected ? t.deselect_all : `${t.select_all_visible} (${filteredRules.length})`}
           </span>
         </button>
 
         <span>
-          Showing {filteredRules.length} of {rules.length} optimization rules
+          {filteredRules.length} / {rules.length} {t.showing_rules}
         </span>
       </div>
 
@@ -133,9 +134,9 @@ export const TweaksView: React.FC = () => {
       <div className="grid grid-cols-1 gap-4">
         {filteredRules.length === 0 ? (
           <div className="p-12 text-center bg-[#11131f] border border-[#202538] rounded-2xl">
-            <p className="text-sm text-slate-300 font-semibold">No matching tweaks found</p>
+            <p className="text-sm text-slate-300 font-semibold">{t.no_matching_tweaks}</p>
             <p className="text-xs text-slate-500 mt-1">
-              Try adjusting your search query or risk filters.
+              {t.no_matching_tweaks_desc}
             </p>
           </div>
         ) : (

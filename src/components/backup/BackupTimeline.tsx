@@ -1,8 +1,9 @@
 import React from 'react';
-import { History, RotateCcw, Trash2, Eye, Calendar, HardDrive } from 'lucide-react';
+import { RotateCcw, Trash2, Eye, Calendar, HardDrive, Smartphone } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { BackupSnapshot } from '../../types/backup';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface BackupTimelineProps {
   backups: BackupSnapshot[];
@@ -17,14 +18,15 @@ export const BackupTimeline: React.FC<BackupTimelineProps> = ({
   onRollback,
   onDelete,
 }) => {
+  const t = useLanguageStore((s) => s.t);
+
   if (backups.length === 0) {
     return (
       <div className="p-12 text-center bg-[#11131f] border border-[#202538] rounded-2xl">
         <HardDrive className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-        <h4 className="text-sm font-bold text-slate-200">No Backup Snapshots Available</h4>
+        <h4 className="text-sm font-bold text-slate-200">{t.no_backups_title}</h4>
         <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-          Snapshots are automatically created before any tweak or debloat action, or you can
-          create a manual snapshot anytime.
+          {t.no_backups_desc}
         </p>
       </div>
     );
@@ -42,16 +44,27 @@ export const BackupTimeline: React.FC<BackupTimelineProps> = ({
               </div>
 
               <div>
-                <h4 className="text-sm font-bold text-white">
-                  {snapshot.note || 'State Snapshot'}
-                </h4>
-                <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-white">
+                    {snapshot.note || 'State Snapshot'}
+                  </h4>
+                  {snapshot.device_name && (
+                    <span className="text-[10px] text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 font-medium">
+                      {snapshot.device_name}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
                   <span className="flex items-center gap-1 font-mono">
-                    <Calendar className="w-3 h-3 text-cyan-400" />
+                    <Calendar className="w-3 h-3 text-purple-400" />
                     {new Date(snapshot.timestamp).toLocaleString()}
                   </span>
                   <span>•</span>
-                  <span className="font-mono text-slate-400">{snapshot.device_serial}</span>
+                  <span className="font-mono text-slate-400 flex items-center gap-1">
+                    <Smartphone className="w-3 h-3 text-cyan-400" />
+                    {snapshot.device_serial}
+                  </span>
                   <span>•</span>
                   <span className="text-emerald-400 font-medium">
                     {snapshot.disabled_packages.length} debloated packages
@@ -69,7 +82,7 @@ export const BackupTimeline: React.FC<BackupTimelineProps> = ({
                 leftIcon={<Eye className="w-3.5 h-3.5" />}
                 className="text-xs"
               >
-                Inspect
+                {t.inspect_btn}
               </Button>
 
               <Button
@@ -79,7 +92,7 @@ export const BackupTimeline: React.FC<BackupTimelineProps> = ({
                 leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
                 className="text-xs"
               >
-                Rollback State
+                {t.rollback_btn}
               </Button>
 
               <Button

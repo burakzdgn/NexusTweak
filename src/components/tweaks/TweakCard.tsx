@@ -1,10 +1,10 @@
 import React from 'react';
-import { Zap, Check, RotateCcw, AlertTriangle, ShieldCheck, Tag } from 'lucide-react';
+import { Zap, Check, RotateCcw, Tag } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Switch } from '../ui/Switch';
 import { TweakRule } from '../../types/tweaks';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface TweakCardProps {
   rule: TweakRule;
@@ -23,6 +23,8 @@ export const TweakCard: React.FC<TweakCardProps> = ({
   onRevert,
   isApplying,
 }) => {
+  const t = useLanguageStore((s) => s.t);
+
   return (
     <Card
       className={`p-5 transition-all duration-200 ${
@@ -48,7 +50,7 @@ export const TweakCard: React.FC<TweakCardProps> = ({
               </Badge>
               {rule.isApplied && (
                 <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                  <Check className="w-3 h-3" /> Active
+                  <Check className="w-3 h-3" /> {t.active_badge}
                 </span>
               )}
             </div>
@@ -61,11 +63,11 @@ export const TweakCard: React.FC<TweakCardProps> = ({
             <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-[#1e2338] text-[11px] text-slate-400 font-mono">
               <span className="flex items-center gap-1 text-slate-400">
                 <Tag className="w-3 h-3 text-cyan-400" />
-                Target: {rule.targetOem.toUpperCase()}
+                {t.target_oem}: {rule.targetOem.toUpperCase()}
               </span>
 
               {rule.minSdk && (
-                <span>Min Android SDK: {rule.minSdk}</span>
+                <span>{t.min_sdk}: {rule.minSdk}</span>
               )}
 
               <span className="text-slate-500 truncate max-w-xs">
@@ -86,7 +88,7 @@ export const TweakCard: React.FC<TweakCardProps> = ({
               leftIcon={<RotateCcw className="w-3.5 h-3.5 text-slate-400" />}
               className="text-xs"
             >
-              Revert
+              {t.revert_btn}
             </Button>
           ) : (
             <Button
@@ -97,7 +99,7 @@ export const TweakCard: React.FC<TweakCardProps> = ({
               leftIcon={<Zap className="w-3.5 h-3.5" />}
               className="text-xs"
             >
-              Apply
+              {t.apply_btn}
             </Button>
           )}
         </div>

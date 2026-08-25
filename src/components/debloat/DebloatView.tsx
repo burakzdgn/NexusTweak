@@ -1,16 +1,8 @@
 import React, { useMemo } from 'react';
-import {
-  Trash2,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  Filter,
-  CheckSquare,
-  Square,
-  AlertTriangle,
-} from 'lucide-react';
+import { Trash2, Search, Sparkles } from 'lucide-react';
 import { useDebloatStore } from '../../stores/useDebloatStore';
 import { useDeviceStore } from '../../stores/useDeviceStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 import { DebloatTable } from './DebloatTable';
 import { WhitelistWarningModal } from './WhitelistWarningModal';
 import { DebloatFilter } from '../../types/debloat';
@@ -22,12 +14,10 @@ export const DebloatView: React.FC = () => {
     selectedPackages,
     filter,
     searchQuery,
-    isLoading,
     isProcessing,
     whitelistWarningTarget,
     toggleSelectPackage,
     selectAllSafeBloat,
-    clearSelection,
     setFilter,
     setSearchQuery,
     setWhitelistWarningTarget,
@@ -36,6 +26,7 @@ export const DebloatView: React.FC = () => {
   } = useDebloatStore();
 
   const activeDevice = useDeviceStore((s) => s.activeDevice);
+  const t = useLanguageStore((s) => s.t);
 
   // Filter package list
   const filteredPackages = useMemo(() => {
@@ -77,16 +68,16 @@ export const DebloatView: React.FC = () => {
   const tabs: { id: DebloatFilter; label: string; count?: number }[] = [
     {
       id: 'bloat',
-      label: 'Bloatware & Telemetry',
+      label: t.tab_bloat,
       count: packages.filter((p) => p.bloat_category && p.is_enabled).length,
     },
-    { id: 'safe', label: 'Safe to Remove', count: safeBloatCount },
-    { id: 'all', label: 'All Packages', count: packages.length },
-    { id: 'system', label: 'System Apps' },
-    { id: 'user', label: 'User Apps' },
+    { id: 'safe', label: t.tab_safe_to_remove, count: safeBloatCount },
+    { id: 'all', label: t.tab_all_packages, count: packages.length },
+    { id: 'system', label: t.tab_system_apps },
+    { id: 'user', label: t.tab_user_apps },
     {
       id: 'disabled',
-      label: 'Disabled / Debloated',
+      label: t.tab_disabled_packages,
       count: packages.filter((p) => !p.is_enabled).length,
     },
   ];
@@ -109,11 +100,13 @@ export const DebloatView: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-amber-400" />
-            Debloat & Package Manager
+            {t.debloat_title}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Safely disable telemetry, vendor bloatware, and ad pushers for{' '}
-            <span className="text-cyan-300 font-semibold">{activeDevice?.model}</span>
+            {t.debloat_subtitle}{' '}
+            <span className="text-cyan-300 font-semibold">
+              {activeDevice?.model || 'Android'}
+            </span>
           </p>
         </div>
 
@@ -123,7 +116,7 @@ export const DebloatView: React.FC = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search packages by name..."
+              placeholder={t.search_packages}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-[#121524] border border-[#202538] rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
@@ -138,7 +131,7 @@ export const DebloatView: React.FC = () => {
               leftIcon={<Sparkles className="w-4 h-4 text-amber-400" />}
               className="shrink-0 text-xs"
             >
-              Select All Safe ({safeBloatCount})
+              {t.select_all_safe} ({safeBloatCount})
             </Button>
           )}
         </div>
@@ -146,26 +139,26 @@ export const DebloatView: React.FC = () => {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {tabs.map((t) => {
-          const isActive = filter === t.id;
+        {tabs.map((tab) => {
+          const isActive = filter === tab.id;
           return (
             <button
-              key={t.id}
-              onClick={() => setFilter(t.id)}
+              key={tab.id}
+              onClick={() => setFilter(tab.id)}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap border ${
                 isActive
                   ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-sm font-semibold'
                   : 'bg-[#121524] border-[#202538] text-slate-400 hover:text-slate-200'
               }`}
             >
-              <span>{t.label}</span>
-              {t.count !== undefined && (
+              <span>{tab.label}</span>
+              {tab.count !== undefined && (
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                     isActive ? 'bg-amber-400/20 text-amber-300' : 'bg-slate-800 text-slate-400'
                   }`}
                 >
-                  {t.count}
+                  {tab.count}
                 </span>
               )}
             </button>

@@ -7,12 +7,12 @@ import {
   Terminal,
   Settings,
   ShieldCheck,
-  Smartphone,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useTweaksStore } from '../../stores/useTweaksStore';
 import { useDebloatStore } from '../../stores/useDebloatStore';
 import { useBackupStore } from '../../stores/useBackupStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 export type NavTab =
   | 'dashboard'
@@ -31,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const rules = useTweaksStore((s) => s.rules);
   const packages = useDebloatStore((s) => s.packages);
   const backups = useBackupStore((s) => s.backups);
+  const t = useLanguageStore((s) => s.t);
 
   const appliedTweaksCount = rules.filter((r) => r.isApplied).length;
   const bloatCount = packages.filter((p) => p.bloat_category && p.is_enabled).length;
@@ -38,40 +39,40 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const navItems = [
     {
       id: 'dashboard' as NavTab,
-      label: 'Dashboard',
+      label: t.tab_dashboard,
       icon: LayoutDashboard,
       badge: null,
     },
     {
       id: 'tweaks' as NavTab,
-      label: 'Optimizations',
+      label: t.tab_tweaks,
       icon: Zap,
-      badge: appliedTweaksCount > 0 ? `${appliedTweaksCount} Active` : null,
+      badge: appliedTweaksCount > 0 ? `${appliedTweaksCount} ${t.active_count}` : null,
       badgeColor: 'cyan',
     },
     {
       id: 'debloat' as NavTab,
-      label: 'Debloat Manager',
+      label: t.tab_debloat,
       icon: Trash2,
-      badge: bloatCount > 0 ? `${bloatCount} Detected` : null,
+      badge: bloatCount > 0 ? `${bloatCount} ${t.detected_count}` : null,
       badgeColor: 'amber',
     },
     {
       id: 'backups' as NavTab,
-      label: 'Rollback & Backups',
+      label: t.tab_backups,
       icon: History,
       badge: backups.length > 0 ? `${backups.length}` : null,
       badgeColor: 'slate',
     },
     {
       id: 'terminal' as NavTab,
-      label: 'ADB Terminal',
+      label: t.tab_terminal,
       icon: Terminal,
       badge: null,
     },
     {
       id: 'settings' as NavTab,
-      label: 'Settings',
+      label: t.tab_settings,
       icon: Settings,
       badge: null,
     },
@@ -90,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
               Nexus<span className="text-cyan-400">Tweak</span>
             </h1>
             <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase">
-              ADB Optimizer v1.0
+              {t.app_subtitle}
             </span>
           </div>
         </div>
@@ -148,8 +149,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
         <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-[#121524] border border-[#202538]">
           <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-slate-200">SafeGuard Active</p>
-            <p className="text-[10px] text-slate-400 truncate">Auto snapshot & Whitelist</p>
+            <p className="text-xs font-semibold text-slate-200">{t.safeguard_active}</p>
+            <p className="text-[10px] text-slate-400 truncate">{t.safeguard_desc}</p>
           </div>
         </div>
       </div>

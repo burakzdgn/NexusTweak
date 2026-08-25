@@ -11,12 +11,13 @@ export function useAdb() {
     healthScore,
     isLoading,
     isScanning,
-    isMockMode,
+    isAdbAvailable,
+    isInstallingAdb,
     error,
     fetchDevices,
     selectDevice,
     refreshActiveDevice,
-    setMockMode,
+    downloadAndInstallAdb,
   } = useDeviceStore();
 
   const { fetchRulesForActiveDevice } = useTweaksStore();
@@ -42,11 +43,12 @@ export function useAdb() {
     healthScore,
     isLoading,
     isScanning,
-    isMockMode,
+    isAdbAvailable,
+    isInstallingAdb,
     error,
     fetchDevices,
     selectDevice,
     refreshActiveDevice,
-    setMockMode,
+    downloadAndInstallAdb,
   };
 }

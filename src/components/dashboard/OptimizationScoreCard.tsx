@@ -1,8 +1,9 @@
 import React from 'react';
-import { Sparkles, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { HealthScore } from '../../types/device';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface OptimizationScoreCardProps {
   score: HealthScore | null;
@@ -13,6 +14,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
   score,
   onNavigateTweaks,
 }) => {
+  const t = useLanguageStore((s) => s.t);
   const totalScore = score?.total_score || 72;
 
   const getScoreColor = (val: number) => {
@@ -40,12 +42,11 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
 
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-white">System Optimization Index</h3>
+              <h3 className="text-base font-bold text-white">{t.system_optimization_index}</h3>
               <Sparkles className="w-4 h-4 text-cyan-400" />
             </div>
             <p className="text-xs text-slate-400 mt-1 max-w-md">
-              Evaluates UI animation responsiveness, private DNS encryption, standby Doze
-              parameters, and background telemetry burden.
+              {t.optimization_desc}
             </p>
           </div>
         </div>
@@ -57,7 +58,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
           rightIcon={<ArrowRight className="w-4 h-4" />}
           className="shrink-0"
         >
-          View Recommendations
+          {t.view_recommendations}
         </Button>
       </div>
 
@@ -65,7 +66,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-[#1e2338]">
         <div>
           <div className="flex justify-between text-xs font-medium text-slate-300">
-            <span>UI Fluidity</span>
+            <span>{t.ui_fluidity}</span>
             <span className="text-cyan-400 font-mono">{score?.animation_score || 60}%</span>
           </div>
           <div className="h-1.5 w-full bg-slate-800 rounded-full mt-1.5 overflow-hidden">
@@ -78,7 +79,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
 
         <div>
           <div className="flex justify-between text-xs font-medium text-slate-300">
-            <span>Privacy / DNS</span>
+            <span>{t.privacy_dns}</span>
             <span className="text-purple-400 font-mono">{score?.privacy_score || 65}%</span>
           </div>
           <div className="h-1.5 w-full bg-slate-800 rounded-full mt-1.5 overflow-hidden">
@@ -91,7 +92,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
 
         <div>
           <div className="flex justify-between text-xs font-medium text-slate-300">
-            <span>Battery Standby</span>
+            <span>{t.battery_standby}</span>
             <span className="text-emerald-400 font-mono">{score?.battery_score || 70}%</span>
           </div>
           <div className="h-1.5 w-full bg-slate-800 rounded-full mt-1.5 overflow-hidden">
@@ -104,7 +105,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
 
         <div>
           <div className="flex justify-between text-xs font-medium text-slate-300">
-            <span>Debloat Cleanliness</span>
+            <span>{t.debloat_cleanliness}</span>
             <span className="text-amber-400 font-mono">{score?.debloat_score || 65}%</span>
           </div>
           <div className="h-1.5 w-full bg-slate-800 rounded-full mt-1.5 overflow-hidden">

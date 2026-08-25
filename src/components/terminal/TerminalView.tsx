@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Terminal, Send, Play } from 'lucide-react';
+import { Terminal, Send } from 'lucide-react';
 import { useLogStore } from '../../stores/useLogStore';
 import { useDeviceStore } from '../../stores/useDeviceStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 import { AdbBridge } from '../../services/adbBridge';
 import { ConsoleLog } from './ConsoleLog';
 import { CommandPresets } from './CommandPresets';
@@ -10,6 +11,7 @@ import { Button } from '../ui/Button';
 export const TerminalView: React.FC = () => {
   const { logs, addLog, clearLogs } = useLogStore();
   const activeSerial = useDeviceStore((s) => s.activeSerial);
+  const t = useLanguageStore((s) => s.t);
   const [command, setCommand] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
 
@@ -41,10 +43,10 @@ export const TerminalView: React.FC = () => {
       <div>
         <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
           <Terminal className="w-5 h-5 text-cyan-400" />
-          Interactive ADB Shell & Diagnostics
+          {t.terminal_title}
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Execute direct ADB shell commands or use diagnostic presets.
+          {t.terminal_subtitle}
         </p>
       </div>
 
@@ -59,7 +61,7 @@ export const TerminalView: React.FC = () => {
           </span>
           <input
             type="text"
-            placeholder="Type ADB shell command (e.g. dumpsys battery, wm size, getprop)..."
+            placeholder={t.terminal_placeholder}
             value={command}
             onChange={(e) => setCommand(e.target.value)}
             onKeyDown={(e) => {
@@ -76,7 +78,7 @@ export const TerminalView: React.FC = () => {
           rightIcon={<Send className="w-4 h-4" />}
           className="py-3 px-6"
         >
-          Execute
+          {t.execute_btn}
         </Button>
       </div>
 

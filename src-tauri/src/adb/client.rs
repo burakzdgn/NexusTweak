@@ -21,7 +21,7 @@ impl AdbClient {
 
     /// Resolves the ADB binary path:
     /// 1. User custom path if provided
-    /// 2. Embedded bundled binary in application dir `binaries/adb` (or `adb.exe`)
+    /// 2. Embedded bundled binary in application dir `binaries/platform-tools/adb` or `binaries/adb`
     /// 3. Environment variable `ANDROID_HOME` or `ANDROID_SDK_ROOT`
     /// 4. Default system `adb` in PATH
     pub fn get_adb_path(&self) -> String {
@@ -33,6 +33,12 @@ impl AdbClient {
 
         let is_windows = cfg!(target_os = "windows");
         let bin_name = if is_windows { "adb.exe" } else { "adb" };
+
+        // Check platform-tools downloaded directory
+        let pt_bin = PathBuf::from("binaries").join("platform-tools").join(bin_name);
+        if pt_bin.exists() {
+            return pt_bin.to_string_lossy().to_string();
+        }
 
         // Check local embedded directory
         let local_bin = PathBuf::from("binaries").join(bin_name);
@@ -59,6 +65,24 @@ impl AdbClient {
         "adb".to_string()
     }
 
+    /// Check if ADB is actually executable on the host system
+    pub async fn check_adb_available(&self) -> bool {
+        let adb_bin = self.get_adb_path();
+        let mut cmd = Command::new(&adb_bin);
+        cmd.arg("version");
+
+        #[cfg(target_os = "windows")]
+        {
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+
+        match tokio::time::timeout(std::time::Duration::from_secs(4), cmd.output()).await {
+            Ok(Ok(output)) => output.status.success(),
+            _ => false,
+        }
+    }
+
     /// Execute an ADB command for a specific device serial or globally
     pub async fn execute(&self, serial: Option<&str>, args: &[&str]) -> Result<AdbExecutionResult, String> {
         let start = Instant::now();
@@ -69,7 +93,6 @@ impl AdbClient {
         // Disable Windows console window popups if on Windows
         #[cfg(target_os = "windows")]
         {
-            // CREATE_NO_WINDOW flag
             const CREATE_NO_WINDOW: u32 = 0x08000000;
             cmd.creation_flags(CREATE_NO_WINDOW);
         }
@@ -101,7 +124,7 @@ impl AdbClient {
                         execution_time_ms: duration,
                     })
                 }
-                Err(e) => Err(format!("Failed to execute adb: {}. Please ensure ADB is installed and in PATH or configure in Settings.", e)),
+                Err(e) => Err(format!("Failed to execute adb ({}): {}. Please install ADB or click 'Download ADB Platform-Tools'.", adb_bin, e)),
             },
             Err(_) => Err("ADB command timed out after 15 seconds".to_string()),
         }

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { History, Plus, RotateCcw, ShieldCheck, RefreshCw } from 'lucide-react';
+import { History, Plus, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useBackupStore } from '../../stores/useBackupStore';
 import { useDeviceStore } from '../../stores/useDeviceStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 import { BackupTimeline } from './BackupTimeline';
 import { SnapshotDiffModal } from './SnapshotDiffModal';
 import { RollbackConfirmDialog } from './RollbackConfirmDialog';
@@ -23,6 +24,7 @@ export const BackupsView: React.FC = () => {
   } = useBackupStore();
 
   const activeSerial = useDeviceStore((s) => s.activeSerial);
+  const t = useLanguageStore((s) => s.t);
   const [newNote, setNewNote] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -43,6 +45,7 @@ export const BackupsView: React.FC = () => {
       <SnapshotDiffModal
         snapshot={selectedBackupForDiff}
         onClose={() => setSelectedBackupForDiff(null)}
+        onRollback={(b) => setActiveRollbackTarget(b)}
       />
 
       {/* Rollback Confirmation Modal */}
@@ -62,10 +65,10 @@ export const BackupsView: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
             <History className="w-5 h-5 text-cyan-400" />
-            Device State Backups & 1-Click Rollback
+            {t.backups_title}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Safe restoration snapshots stored locally in{' '}
+            {t.backups_subtitle}{' '}
             <code className="text-cyan-300 font-mono">device_backups/</code>
           </p>
         </div>
@@ -77,7 +80,7 @@ export const BackupsView: React.FC = () => {
           isLoading={isLoading}
           leftIcon={<RefreshCw className="w-4 h-4" />}
         >
-          Refresh Backups
+          {t.refresh_backups_btn}
         </Button>
       </div>
 
@@ -88,9 +91,9 @@ export const BackupsView: React.FC = () => {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-white">Create New Manual Snapshot</h4>
+            <h4 className="text-sm font-semibold text-white">{t.create_manual_snapshot}</h4>
             <p className="text-xs text-slate-400">
-              Captures all system settings namespaces and disabled package states.
+              {t.create_snapshot_desc}
             </p>
           </div>
         </div>
@@ -98,7 +101,7 @@ export const BackupsView: React.FC = () => {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <input
             type="text"
-            placeholder="Snapshot label / note..."
+            placeholder={t.snapshot_placeholder}
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
             className="flex-1 sm:w-60 px-3 py-1.5 bg-[#141724] border border-[#202538] rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
@@ -110,7 +113,7 @@ export const BackupsView: React.FC = () => {
             isLoading={isCreating}
             leftIcon={<Plus className="w-4 h-4" />}
           >
-            Create Snapshot
+            {t.create_snapshot_btn}
           </Button>
         </div>
       </div>

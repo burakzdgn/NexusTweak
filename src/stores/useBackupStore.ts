@@ -44,16 +44,21 @@ export const useBackupStore = create<BackupState>((set, get) => ({
   },
 
   createBackup: async (note: string) => {
-    const activeSerial = useDeviceStore.getState().activeSerial;
-    if (!activeSerial) return false;
+    const activeDevice = useDeviceStore.getState().activeDevice;
+    if (!activeDevice) return false;
 
     set({ isLoading: true });
     try {
-      const snapshot = await AdbBridge.createBackup(activeSerial, note);
+      const deviceName = `${activeDevice.manufacturer} ${activeDevice.model}`;
+      const snapshot = await AdbBridge.createBackup(
+        activeDevice.serial,
+        deviceName,
+        note
+      );
       useLogStore.getState().addLog(
         'success',
         'Created system snapshot',
-        `Snapshot ID: ${snapshot.id}`
+        `Device: ${deviceName} | ID: ${snapshot.id}`
       );
       await get().fetchBackups();
       return true;

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Trash2, Terminal, CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { LogEntry } from '../../types/logs';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface ConsoleLogProps {
   logs: LogEntry[];
@@ -8,6 +9,8 @@ interface ConsoleLogProps {
 }
 
 export const ConsoleLog: React.FC<ConsoleLogProps> = ({ logs, onClear }) => {
+  const t = useLanguageStore((s) => s.t);
+
   const getLogColor = (type: LogEntry['type']) => {
     switch (type) {
       case 'success':
@@ -33,14 +36,14 @@ export const ConsoleLog: React.FC<ConsoleLogProps> = ({ logs, onClear }) => {
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
           </div>
-          <span className="text-xs text-slate-400 ml-2">ADB Console Output Stream</span>
+          <span className="text-xs text-slate-400 ml-2">{t.console_output}</span>
         </div>
 
         <button
           onClick={onClear}
           className="text-xs text-slate-400 hover:text-rose-400 flex items-center gap-1 transition-colors"
         >
-          <Trash2 className="w-3.5 h-3.5" /> Clear Console
+          <Trash2 className="w-3.5 h-3.5" /> {t.clear_console}
         </button>
       </div>
 

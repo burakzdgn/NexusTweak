@@ -1,13 +1,15 @@
 import React from 'react';
-import { MemoryStick, Monitor, Gauge, Activity } from 'lucide-react';
+import { MemoryStick, Monitor, Gauge } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { DeviceInfo } from '../../types/device';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface MetricGaugesProps {
   device: DeviceInfo;
 }
 
 export const MetricGauges: React.FC<MetricGaugesProps> = ({ device }) => {
+  const t = useLanguageStore((s) => s.t);
   const usedRamMb = device.total_ram_mb - device.available_ram_mb;
   const ramPercent = Math.round((usedRamMb / device.total_ram_mb) * 100);
 
@@ -21,8 +23,8 @@ export const MetricGauges: React.FC<MetricGaugesProps> = ({ device }) => {
               <MemoryStick className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-slate-200">RAM Allocation</h4>
-              <p className="text-[11px] text-slate-400">Physical LPDDR Memory</p>
+              <h4 className="text-xs font-semibold text-slate-200">{t.ram_allocation}</h4>
+              <p className="text-[11px] text-slate-400">{t.physical_memory}</p>
             </div>
           </div>
           <span className="text-xs font-mono font-bold text-cyan-400">
@@ -38,8 +40,8 @@ export const MetricGauges: React.FC<MetricGaugesProps> = ({ device }) => {
             />
           </div>
           <div className="flex justify-between text-[11px] text-slate-400 mt-2 font-mono">
-            <span>{(usedRamMb / 1024).toFixed(1)} GB Used</span>
-            <span>{(device.total_ram_mb / 1024).toFixed(1)} GB Total</span>
+            <span>{(usedRamMb / 1024).toFixed(1)} GB {t.ram_used}</span>
+            <span>{(device.total_ram_mb / 1024).toFixed(1)} GB {t.ram_total}</span>
           </div>
         </div>
       </Card>
@@ -52,8 +54,8 @@ export const MetricGauges: React.FC<MetricGaugesProps> = ({ device }) => {
               <Monitor className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-slate-200">Refresh Rate</h4>
-              <p className="text-[11px] text-slate-400">Dynamic Panel Hz</p>
+              <h4 className="text-xs font-semibold text-slate-200">{t.refresh_rate}</h4>
+              <p className="text-[11px] text-slate-400">{t.dynamic_panel_hz}</p>
             </div>
           </div>
           <span className="text-xs font-mono font-bold text-purple-400">
@@ -85,8 +87,8 @@ export const MetricGauges: React.FC<MetricGaugesProps> = ({ device }) => {
               <Gauge className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-slate-200">Pixel Density</h4>
-              <p className="text-[11px] text-slate-400">wm density / DPI Scale</p>
+              <h4 className="text-xs font-semibold text-slate-200">{t.pixel_density}</h4>
+              <p className="text-[11px] text-slate-400">DPI / Scale</p>
             </div>
           </div>
           <span className="text-xs font-mono font-bold text-emerald-400">
@@ -95,7 +97,7 @@ export const MetricGauges: React.FC<MetricGaugesProps> = ({ device }) => {
         </div>
 
         <div className="mt-4 flex items-center justify-between pt-2 border-t border-[#1e2338]">
-          <span className="text-xs text-slate-400">Display Dimensions</span>
+          <span className="text-xs text-slate-400">{t.screen_dimensions}</span>
           <span className="text-xs font-mono font-semibold text-slate-200">
             {device.display.width} × {device.display.height} px
           </span>
