@@ -30,17 +30,21 @@ impl RuleEngine {
 
         let mut all_rules = Vec::new();
 
-        if let Ok(r) = serde_json::from_str::<Vec<TweakRule>>(generic_raw) {
-            all_rules.extend(r);
+        match serde_json::from_str::<Vec<TweakRule>>(generic_raw) {
+            Ok(r) => all_rules.extend(r),
+            Err(e) => eprintln!("[NexusTweak] Failed to parse generic_tweaks.json: {}", e),
         }
-        if let Ok(r) = serde_json::from_str::<Vec<TweakRule>>(samsung_raw) {
-            all_rules.extend(r);
+        match serde_json::from_str::<Vec<TweakRule>>(samsung_raw) {
+            Ok(r) => all_rules.extend(r),
+            Err(e) => eprintln!("[NexusTweak] Failed to parse samsung_oneui.json: {}", e),
         }
-        if let Ok(r) = serde_json::from_str::<Vec<TweakRule>>(xiaomi_raw) {
-            all_rules.extend(r);
+        match serde_json::from_str::<Vec<TweakRule>>(xiaomi_raw) {
+            Ok(r) => all_rules.extend(r),
+            Err(e) => eprintln!("[NexusTweak] Failed to parse xiaomi_miui.json: {}", e),
         }
-        if let Ok(r) = serde_json::from_str::<Vec<TweakRule>>(pixel_raw) {
-            all_rules.extend(r);
+        match serde_json::from_str::<Vec<TweakRule>>(pixel_raw) {
+            Ok(r) => all_rules.extend(r),
+            Err(e) => eprintln!("[NexusTweak] Failed to parse google_pixel.json: {}", e),
         }
 
         self.rules = all_rules;
@@ -160,13 +164,32 @@ impl RuleEngine {
     pub fn get_applicable_rules(&self, device: &DeviceInfo) -> Vec<TweakRule> {
         let oem_lower = device.manufacturer.to_lowercase();
         let brand_lower = device.brand.to_lowercase();
+        let codename_lower = device.device_codename.to_lowercase();
+        let product_lower = device.product_name.to_lowercase();
 
         self.rules.iter().filter(|r| {
-            let matches_oem = match r.target_oem.as_str() {
+            let target = r.target_oem.to_lowercase();
+            let matches_oem = match target.as_str() {
                 "generic" => true,
-                "samsung" => oem_lower.contains("samsung") || brand_lower.contains("samsung"),
-                "xiaomi" => oem_lower.contains("xiaomi") || oem_lower.contains("redmi") || oem_lower.contains("poco") || brand_lower.contains("xiaomi"),
-                "google" => oem_lower.contains("google") || brand_lower.contains("google") || brand_lower.contains("pixel"),
+                "samsung" => oem_lower.contains("samsung") || brand_lower.contains("samsung") || product_lower.contains("samsung"),
+                "xiaomi" => {
+                    oem_lower.contains("xiaomi")
+                        || oem_lower.contains("redmi")
+                        || oem_lower.contains("poco")
+                        || brand_lower.contains("xiaomi")
+                        || brand_lower.contains("redmi")
+                        || brand_lower.contains("poco")
+                        || codename_lower.contains("xiaomi")
+                        || product_lower.contains("xiaomi")
+                        || product_lower.contains("redmi")
+                        || product_lower.contains("poco")
+                }
+                "google" => {
+                    oem_lower.contains("google")
+                        || brand_lower.contains("google")
+                        || brand_lower.contains("pixel")
+                        || product_lower.contains("pixel")
+                }
                 _ => false,
             };
 

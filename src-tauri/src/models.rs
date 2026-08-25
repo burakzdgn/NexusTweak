@@ -77,6 +77,7 @@ pub enum RiskLevel {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TweakRule {
     pub id: String,
     pub name: String,
@@ -84,15 +85,25 @@ pub struct TweakRule {
     pub category: String,
     pub risk: RiskLevel,
     pub target_oem: String,
+    #[serde(default)]
     pub min_sdk: Option<u32>,
+    #[serde(default)]
     pub max_sdk: Option<u32>,
+    #[serde(default)]
     pub packages: Option<Vec<String>>,
+    #[serde(default)]
     pub apply_commands: Vec<String>,
+    #[serde(default)]
     pub revert_commands: Vec<String>,
+    #[serde(default)]
     pub verify_command: Option<String>,
+    #[serde(default)]
     pub expected_value: Option<String>,
+    #[serde(default)]
     pub current_value: Option<String>,
+    #[serde(default)]
     pub is_applied: Option<bool>,
+    #[serde(default)]
     pub tags: Vec<String>,
 }
 

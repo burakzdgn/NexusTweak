@@ -116,6 +116,35 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Dynamic Recommendation Action Items */}
+      {score?.recommendations && score.recommendations.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-[#1e2338]">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              {t.view_recommendations} ({score.recommendations.length})
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {score.recommendations.map((rec, idx) => (
+              <div
+                key={idx}
+                onClick={onNavigateTweaks}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[#111422] hover:bg-[#161a2e] border border-[#1e2338] hover:border-cyan-500/40 cursor-pointer transition-all group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 group-hover:scale-125 transition-transform" />
+                  <span className="text-xs text-slate-300 group-hover:text-white truncate">
+                    {rec}
+                  </span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 shrink-0 transition-colors ml-2" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </Card>
   );
 };
