@@ -9,6 +9,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { PackageInfo } from '../../types/debloat';
 import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translateBloatCategory, translateBloatDescription } from '../../utils/tweakTranslator';
 
 interface DebloatTableProps {
   packages: PackageInfo[];
@@ -27,7 +28,7 @@ export const DebloatTable: React.FC<DebloatTableProps> = ({
   onRestore,
   isProcessing,
 }) => {
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
 
   return (
     <div className="bg-[#11131f] border border-[#202538] rounded-2xl overflow-hidden shadow-xl">
@@ -114,17 +115,17 @@ export const DebloatTable: React.FC<DebloatTableProps> = ({
                       {pkg.bloat_category ? (
                         <div>
                           <span className="font-medium text-amber-300">
-                            {pkg.bloat_category}
+                            {translateBloatCategory(pkg.bloat_category, language)}
                           </span>
                           {pkg.bloat_description && (
                             <p className="text-[11px] text-slate-400 truncate max-w-xs">
-                              {pkg.bloat_description}
+                              {translateBloatDescription(pkg.bloat_description, language)}
                             </p>
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-400">
-                          {pkg.is_system ? 'System Component' : 'User Application'}
+                        <span className="text-slate-500 italic">
+                          {pkg.is_system ? (language === 'tr' ? 'Standart Sistem Uygulaması' : 'Standard System App') : (language === 'tr' ? 'Kullanıcı Uygulaması' : 'User Installed App')}
                         </span>
                       )}
                     </td>

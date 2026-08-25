@@ -6,6 +6,7 @@ import { useLanguageStore } from '../../stores/useLanguageStore';
 import { TweakCard } from './TweakCard';
 import { TweakCategoryFilter } from './TweakCategoryFilter';
 import { Switch } from '../ui/Switch';
+import { translateTweakRule } from '../../utils/tweakTranslator';
 
 export const TweaksView: React.FC = () => {
   const {
@@ -28,7 +29,7 @@ export const TweaksView: React.FC = () => {
   } = useTweaksStore();
 
   const activeDevice = useDeviceStore((s) => s.activeDevice);
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
 
   // Filter rules based on category, risk, and search
   const filteredRules = useMemo(() => {
@@ -37,15 +38,18 @@ export const TweaksView: React.FC = () => {
       if (activeRisk !== 'all' && r.risk !== activeRisk) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
+        const translated = translateTweakRule(r, language);
         return (
           r.name.toLowerCase().includes(q) ||
           r.description.toLowerCase().includes(q) ||
+          translated.name.toLowerCase().includes(q) ||
+          translated.description.toLowerCase().includes(q) ||
           r.tags.some((tag) => tag.toLowerCase().includes(q))
         );
       }
       return true;
     });
-  }, [rules, activeCategory, activeRisk, searchQuery]);
+  }, [rules, activeCategory, activeRisk, searchQuery, language]);
 
   const allVisibleSelected =
     filteredRules.length > 0 &&

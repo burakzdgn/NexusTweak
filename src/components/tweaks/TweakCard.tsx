@@ -5,6 +5,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { TweakRule } from '../../types/tweaks';
 import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translateTweakRule, translateCategory } from '../../utils/tweakTranslator';
 
 interface TweakCardProps {
   rule: TweakRule;
@@ -23,7 +24,8 @@ export const TweakCard: React.FC<TweakCardProps> = ({
   onRevert,
   isApplying,
 }) => {
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
+  const translated = translateTweakRule(rule, language);
 
   return (
     <Card
@@ -43,10 +45,10 @@ export const TweakCard: React.FC<TweakCardProps> = ({
 
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="text-sm font-bold text-white tracking-wide">{rule.name}</h4>
+              <h4 className="text-sm font-bold text-white tracking-wide">{translated.name}</h4>
               <Badge risk={rule.risk} size="sm" />
               <Badge variant="purple" size="sm">
-                {rule.category}
+                {translateCategory(rule.category, language)}
               </Badge>
               {rule.isApplied && (
                 <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
@@ -56,7 +58,7 @@ export const TweakCard: React.FC<TweakCardProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-              {rule.description}
+              {translated.description}
             </p>
 
             {/* Target OEM & Command Preview */}

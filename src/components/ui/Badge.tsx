@@ -2,6 +2,8 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { RiskLevel } from '../../types/tweaks';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translateRisk } from '../../utils/tweakTranslator';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'cyan' | 'purple' | 'emerald' | 'amber' | 'rose' | 'slate';
@@ -17,6 +19,7 @@ export const Badge: React.FC<BadgeProps> = ({
   className,
   ...props
 }) => {
+  const language = useLanguageStore((s) => s.language);
   let effectiveVariant = variant || 'slate';
 
   if (risk) {
@@ -47,6 +50,8 @@ export const Badge: React.FC<BadgeProps> = ({
     md: 'px-2.5 py-1 text-xs',
   };
 
+  const label = risk ? translateRisk(risk, language) : children;
+
   return (
     <span
       className={twMerge(
@@ -59,7 +64,7 @@ export const Badge: React.FC<BadgeProps> = ({
       )}
       {...props}
     >
-      {risk || children}
+      {label}
     </span>
   );
 };

@@ -9,12 +9,33 @@ interface BatteryHealthCardProps {
 }
 
 export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery }) => {
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
 
   const getTempColor = (temp: number) => {
     if (temp > 42) return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
     if (temp > 37) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
     return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+  };
+
+  const getLocalizedHealth = (val: string) => {
+    if (language === 'en') return val;
+    switch (val.toLowerCase()) {
+      case 'good': return 'Mükemmel / İyi';
+      case 'overheat': return 'Aşırı Isınma';
+      case 'dead': return 'Arızalı / Bitti';
+      case 'over voltage': return 'Yüksek Voltaj';
+      case 'cold': return 'Soğuk';
+      default: return val;
+    }
+  };
+
+  const getLocalizedPlugged = (val: string) => {
+    if (language === 'en') return val;
+    if (val.includes('USB')) return 'USB Portu';
+    if (val.includes('AC')) return 'Priz Şarjı (AC)';
+    if (val.includes('Wireless')) return 'Kablosuz Şarj';
+    if (val.includes('Unplugged')) return 'Pilde (Şarj Yok)';
+    return val;
   };
 
   return (
@@ -54,7 +75,7 @@ export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery })
             <span>{t.health}</span>
           </div>
           <p className="text-xs font-bold text-slate-200 mt-1 truncate">
-            {battery.health}
+            {getLocalizedHealth(battery.health)}
           </p>
         </div>
 
@@ -76,7 +97,7 @@ export const BatteryHealthCard: React.FC<BatteryHealthCardProps> = ({ battery })
             <span>{t.power_source}</span>
           </div>
           <p className="text-xs font-bold text-slate-200 mt-1 truncate">
-            {battery.plugged}
+            {getLocalizedPlugged(battery.plugged)}
           </p>
         </div>
       </div>

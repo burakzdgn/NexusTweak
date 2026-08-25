@@ -17,6 +17,7 @@ import { useDeviceStore } from '../../stores/useDeviceStore';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 import { DisclaimerBanner } from '../legal/DisclaimerBanner';
 import { OptimizationProfile } from '../../types/profiles';
+import { translateProfile } from '../../utils/tweakTranslator';
 
 export const ProfilesView: React.FC = () => {
   const {
@@ -29,7 +30,7 @@ export const ProfilesView: React.FC = () => {
   } = useProfileStore();
 
   const activeDevice = useDeviceStore((s) => s.activeDevice);
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
 
   const getProfileIcon = (name: OptimizationProfile['iconName']) => {
     switch (name) {
@@ -140,6 +141,7 @@ export const ProfilesView: React.FC = () => {
         {profiles.map((profile) => {
           const Icon = getProfileIcon(profile.iconName);
           const isCurrentActive = activeProfileId === profile.id;
+          const translated = translateProfile(profile, language);
 
           return (
             <Card
@@ -162,11 +164,11 @@ export const ProfilesView: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-white tracking-wide">
-                        {profile.name}
+                        {translated.name}
                       </h3>
                       <span className="text-[10px] text-slate-400 font-mono">
-                        {profile.rulesToApply.length} rules •{' '}
-                        {profile.packagesToDebloat.length} bloat targets
+                        {profile.rulesToApply.length} {t.showing_rules} •{' '}
+                        {profile.packagesToDebloat.length} bloat
                       </span>
                     </div>
                   </div>
@@ -180,7 +182,7 @@ export const ProfilesView: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-slate-300 mt-4 leading-relaxed">
-                  {profile.description}
+                  {translated.description}
                 </p>
 
                 {/* Overrides Preview */}
