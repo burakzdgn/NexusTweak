@@ -22,6 +22,11 @@ export function translateRecommendation(rec: string, lang: 'tr' | 'en'): string 
     return 'Bekleme süresinde pil tasarrufu için Agresif Doze derin uyku modunu etkinleştirin';
   }
 
+  // Wi-Fi Scan Throttling
+  if (rec.includes('Wi-Fi background scan throttling') || rec.includes('Wi-Fi scan throttling')) {
+    return 'Gereksiz ağ aramalarını durdurup pil ömrünü artırmak için Wi-Fi Tarama Kısıtlamasını kapatın';
+  }
+
   // UI Blur (for 4GB RAM)
   if (rec.includes('UI blur') || rec.includes('blur effects')) {
     return 'GPU ve RAM belleği rahatlatmak için gerçek zamanlı UI bulanıklıklarını kapatın';

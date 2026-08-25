@@ -362,7 +362,7 @@ impl RuleEngine {
         settings_system: &HashMap<String, String>,
         applied_tweaks: &[String],
     ) -> HealthScore {
-        let mut battery_score: u32 = 70;
+        let battery_score: u32;
         let mut privacy_score: u32 = 65;
         let mut animation_score: u32 = 60;
         let mut recommendations = Vec::new();
@@ -414,15 +414,27 @@ impl RuleEngine {
             recommendations.push("Enable AdGuard or Cloudflare Private DNS to block trackers & ads".to_string());
         }
 
-        // 4. Live Check Doze / Battery Constants
+        // 4. Live Check Doze / Battery Constants & Wi-Fi Scan Throttling
         let doze_constants = settings_global.get("device_idle_constants").map(|s| s.as_str()).unwrap_or("");
         let is_doze_aggressive = doze_constants.contains("inactive_to")
             || applied_tweaks.contains(&"gen_aggressive_doze".to_string());
 
-        if is_doze_aggressive {
-            battery_score = 95;
-        } else {
+        let wifi_throttle = settings_global.get("wifi_scan_throttle_enabled").map(|s| s.as_str()).unwrap_or("1");
+        let is_wifi_optimized = wifi_throttle == "0"
+            || applied_tweaks.contains(&"gen_wifi_scan_throttling_disable".to_string());
+
+        if is_doze_aggressive && is_wifi_optimized {
+            battery_score = 100;
+        } else if is_doze_aggressive {
+            battery_score = 90;
+            recommendations.push("Disable Wi-Fi background scan throttling to optimize standby power".to_string());
+        } else if is_wifi_optimized {
+            battery_score = 85;
             recommendations.push("Enable Aggressive Doze for enhanced standby battery savings".to_string());
+        } else {
+            battery_score = 70;
+            recommendations.push("Enable Aggressive Doze for enhanced standby battery savings".to_string());
+            recommendations.push("Disable Wi-Fi background scan throttling to optimize standby power".to_string());
         }
 
         // 5. Live Check RAM & UI Blurs (for 4GB devices on Android 12+)
