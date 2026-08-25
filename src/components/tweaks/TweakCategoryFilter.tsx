@@ -8,8 +8,11 @@ import {
   Wifi,
   Cpu,
   Trash2,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 import { TweakCategory, RiskLevel } from '../../types/tweaks';
+import { TweakStatusFilter } from '../../stores/useTweaksStore';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 
 interface TweakCategoryFilterProps {
@@ -17,6 +20,8 @@ interface TweakCategoryFilterProps {
   onSelectCategory: (cat: TweakCategory) => void;
   activeRisk: RiskLevel | 'all';
   onSelectRisk: (risk: RiskLevel | 'all') => void;
+  activeStatus: TweakStatusFilter;
+  onSelectStatus: (status: TweakStatusFilter) => void;
 }
 
 export const TweakCategoryFilter: React.FC<TweakCategoryFilterProps> = ({
@@ -24,8 +29,10 @@ export const TweakCategoryFilter: React.FC<TweakCategoryFilterProps> = ({
   onSelectCategory,
   activeRisk,
   onSelectRisk,
+  activeStatus,
+  onSelectStatus,
 }) => {
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
 
   const categories: { id: TweakCategory; label: string; icon: React.ElementType }[] = [
     { id: 'all', label: t.cat_all, icon: Layers },
@@ -45,9 +52,15 @@ export const TweakCategoryFilter: React.FC<TweakCategoryFilterProps> = ({
     { id: 'Advanced', label: t.risk_advanced },
   ];
 
+  const statuses: { id: TweakStatusFilter; label: string; icon?: React.ElementType }[] = [
+    { id: 'all', label: language === 'tr' ? 'Tümü' : 'All' },
+    { id: 'unapplied', label: language === 'tr' ? 'Bekleyenler' : 'Unapplied', icon: Clock },
+    { id: 'applied', label: language === 'tr' ? 'Uygulananlar' : 'Applied', icon: CheckCircle2 },
+  ];
+
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      {/* Category Pills */}
+    <div className="space-y-3">
+      {/* Top: Category Pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
         {categories.map((cat) => {
           const Icon = cat.icon;
@@ -70,21 +83,52 @@ export const TweakCategoryFilter: React.FC<TweakCategoryFilterProps> = ({
         })}
       </div>
 
-      {/* Risk Filter Buttons */}
-      <div className="flex items-center gap-1 bg-[#121524] p-1 rounded-xl border border-[#202538]">
-        {risks.map((r) => (
-          <button
-            key={r.id}
-            onClick={() => onSelectRisk(r.id)}
-            className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
-              activeRisk === r.id
-                ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
+      {/* Bottom: Status & Risk Filter Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Status Filter (All / Unapplied / Applied) */}
+        <div className="flex items-center gap-1 bg-[#121524] p-1 rounded-xl border border-[#202538]">
+          <span className="text-[10px] text-slate-500 font-semibold px-2 uppercase tracking-wider">
+            {language === 'tr' ? 'Durum' : 'Status'}:
+          </span>
+          {statuses.map((s) => {
+            const Icon = s.icon;
+            const isActive = activeStatus === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => onSelectStatus(s.id)}
+                className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                  isActive
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {Icon && <Icon className="w-3 h-3" />}
+                <span>{s.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Risk Filter Buttons */}
+        <div className="flex items-center gap-1 bg-[#121524] p-1 rounded-xl border border-[#202538]">
+          <span className="text-[10px] text-slate-500 font-semibold px-2 uppercase tracking-wider">
+            {language === 'tr' ? 'Risk' : 'Risk'}:
+          </span>
+          {risks.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => onSelectRisk(r.id)}
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                activeRisk === r.id
+                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

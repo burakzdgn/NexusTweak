@@ -281,7 +281,32 @@ impl RuleEngine {
                     if let Some(val) = current {
                         rule.current_value = Some(val.clone());
                         if let Some(ref exp) = rule.expected_value {
-                            rule.is_applied = Some(val == exp || (exp.contains("inactive_to") && val.contains("inactive_to")));
+                            let is_match = match rule.id.as_str() {
+                                "gen_anim_scale_fast" => {
+                                    let v = val.parse::<f32>().unwrap_or(1.0);
+                                    (v - 0.5).abs() < 0.05
+                                },
+                                "gen_anim_scale_off" => {
+                                    let v = val.parse::<f32>().unwrap_or(1.0);
+                                    v < 0.05
+                                },
+                                "gen_private_dns_cloudflare" => {
+                                    let mode = settings_global.get("private_dns_mode").map(|s| s.as_str()).unwrap_or("");
+                                    mode == "hostname" && (val.contains("cloudflare") || val.contains("1.1.1.1") || val.contains("1dot1dot1dot1"))
+                                },
+                                "gen_private_dns_adguard" => {
+                                    let mode = settings_global.get("private_dns_mode").map(|s| s.as_str()).unwrap_or("");
+                                    mode == "hostname" && val.contains("adguard")
+                                },
+                                "gen_aggressive_doze" => val.contains("inactive_to"),
+                                "gen_force_peak_refresh_rate" => {
+                                    let current_hz = val.parse::<f32>().unwrap_or(0.0);
+                                    let target_hz = exp.parse::<f32>().unwrap_or(0.0);
+                                    target_hz > 30.0 && (current_hz - target_hz).abs() < 1.0
+                                },
+                                _ => val == exp || (exp.contains("inactive_to") && val.contains("inactive_to")),
+                            };
+                            rule.is_applied = Some(is_match);
                         }
                     } else {
                         rule.current_value = Some("null".to_string());

@@ -4,11 +4,14 @@ import { AdbBridge } from '../services/adbBridge';
 import { useDeviceStore } from './useDeviceStore';
 import { useLogStore } from './useLogStore';
 
+export type TweakStatusFilter = 'all' | 'unapplied' | 'applied';
+
 interface TweaksState {
   rules: TweakRule[];
   selectedRuleIds: Set<string>;
   activeCategory: TweakCategory;
   activeRisk: RiskLevel | 'all';
+  statusFilter: TweakStatusFilter;
   searchQuery: string;
   autoBackupEnabled: boolean;
   isApplying: boolean;
@@ -21,6 +24,7 @@ interface TweaksState {
   clearSelection: () => void;
   setCategory: (category: TweakCategory) => void;
   setRiskFilter: (risk: RiskLevel | 'all') => void;
+  setStatusFilter: (status: TweakStatusFilter) => void;
   setSearchQuery: (query: string) => void;
   setAutoBackup: (enabled: boolean) => void;
   applySingleTweak: (ruleId: string) => Promise<boolean>;
@@ -33,6 +37,7 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
   selectedRuleIds: new Set<string>(),
   activeCategory: 'all',
   activeRisk: 'all',
+  statusFilter: 'all',
   searchQuery: '',
   autoBackupEnabled: true,
   isApplying: false,
@@ -81,6 +86,7 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
 
   setCategory: (category: TweakCategory) => set({ activeCategory: category }),
   setRiskFilter: (risk: RiskLevel | 'all') => set({ activeRisk: risk }),
+  setStatusFilter: (status: TweakStatusFilter) => set({ statusFilter: status }),
   setSearchQuery: (query: string) => set({ searchQuery: query }),
   setAutoBackup: (enabled: boolean) => set({ autoBackupEnabled: enabled }),
 

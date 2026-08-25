@@ -14,6 +14,7 @@ export const TweaksView: React.FC = () => {
     selectedRuleIds,
     activeCategory,
     activeRisk,
+    statusFilter,
     searchQuery,
     autoBackupEnabled,
     isApplying,
@@ -22,6 +23,7 @@ export const TweaksView: React.FC = () => {
     clearSelection,
     setCategory,
     setRiskFilter,
+    setStatusFilter,
     setSearchQuery,
     setAutoBackup,
     applySingleTweak,
@@ -31,11 +33,13 @@ export const TweaksView: React.FC = () => {
   const activeDevice = useDeviceStore((s) => s.activeDevice);
   const { t, language } = useLanguageStore();
 
-  // Filter rules based on category, risk, and search
+  // Filter rules based on category, risk, status, and search
   const filteredRules = useMemo(() => {
     return rules.filter((r) => {
       if (activeCategory !== 'all' && r.category !== activeCategory) return false;
       if (activeRisk !== 'all' && r.risk !== activeRisk) return false;
+      if (statusFilter === 'unapplied' && r.isApplied) return false;
+      if (statusFilter === 'applied' && !r.isApplied) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const translated = translateTweakRule(r, language);
@@ -49,7 +53,7 @@ export const TweaksView: React.FC = () => {
       }
       return true;
     });
-  }, [rules, activeCategory, activeRisk, searchQuery, language]);
+  }, [rules, activeCategory, activeRisk, statusFilter, searchQuery, language]);
 
   const allVisibleSelected =
     filteredRules.length > 0 &&
@@ -111,6 +115,8 @@ export const TweaksView: React.FC = () => {
         onSelectCategory={setCategory}
         activeRisk={activeRisk}
         onSelectRisk={setRiskFilter}
+        activeStatus={statusFilter}
+        onSelectStatus={setStatusFilter}
       />
 
       {/* Action Toolbar */}
