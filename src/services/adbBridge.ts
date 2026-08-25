@@ -3,6 +3,7 @@ import { PackageInfo } from '../types/debloat';
 import { TweakRule } from '../types/tweaks';
 import { BackupSnapshot } from '../types/backup';
 import { AdbExecutionResult } from '../types/logs';
+import { ScrcpyOptions } from '../types/mirror';
 
 // Check if running inside Tauri desktop runtime
 export const isTauriEnvironment = (): boolean => {
@@ -31,6 +32,39 @@ export class AdbBridge {
 
   public static async downloadInstallAdb(): Promise<string> {
     return await this.invoke<string>('download_install_adb');
+  }
+
+  public static async checkScrcpyStatus(): Promise<boolean> {
+    if (!isTauriEnvironment()) return false;
+    try {
+      return await this.invoke<boolean>('check_scrcpy_status');
+    } catch {
+      return false;
+    }
+  }
+
+  public static async downloadInstallScrcpy(): Promise<string> {
+    return await this.invoke<string>('download_install_scrcpy');
+  }
+
+  public static async startScreenMirror(
+    serial: string,
+    options: ScrcpyOptions
+  ): Promise<boolean> {
+    return await this.invoke<boolean>('start_screen_mirror', { serial, options });
+  }
+
+  public static async stopScreenMirror(): Promise<boolean> {
+    return await this.invoke<boolean>('stop_screen_mirror');
+  }
+
+  public static async isScreenMirrorRunning(): Promise<boolean> {
+    if (!isTauriEnvironment()) return false;
+    try {
+      return await this.invoke<boolean>('is_screen_mirror_running');
+    } catch {
+      return false;
+    }
   }
 
   public static async getDevices(): Promise<AdbDevice[]> {

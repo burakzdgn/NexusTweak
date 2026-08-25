@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::State;
 
-use crate::adb::{AdbClient, AdbCommands, DeviceScanner};
+use crate::adb::{AdbClient, AdbCommands, DeviceScanner, ScrcpyManager, ScrcpyOptions};
 use crate::models::{
     AdbDevice, AdbExecutionResult, BackupSnapshot, DeviceInfo, HealthScore, PackageInfo, TweakRule
 };
@@ -17,6 +17,7 @@ pub struct AppState {
     pub adb_client: Mutex<AdbClient>,
     pub rule_engine: Mutex<RuleEngine>,
     pub backup_manager: Mutex<BackupManager>,
+    pub scrcpy_process: Mutex<Option<tokio::process::Child>>,
 }
 
 #[tauri::command]
@@ -97,6 +98,69 @@ async fn download_install_adb(state: State<'_, AppState>) -> Result<String, Stri
         Ok(path_str)
     } else {
         Err("Downloaded platform-tools archive could not be verified.".to_string())
+    }
+}
+
+#[tauri::command]
+async fn check_scrcpy_status() -> Result<bool, String> {
+    Ok(ScrcpyManager::check_available().await)
+}
+
+#[tauri::command]
+async fn download_install_scrcpy() -> Result<String, String> {
+    ScrcpyManager::download_and_install().await
+}
+
+#[tauri::command]
+async fn start_screen_mirror(
+    serial: String,
+    options: ScrcpyOptions,
+    state: State<'_, AppState>,
+) -> Result<bool, String> {
+    // Terminate any currently running instance first
+    {
+        let mut proc_guard = state.scrcpy_process.lock().unwrap();
+        if let Some(mut child) = proc_guard.take() {
+            let _ = child.kill().await;
+        }
+    }
+
+    let adb_path = {
+        let client = state.adb_client.lock().unwrap();
+        client.get_adb_path()
+    };
+
+    let child = ScrcpyManager::spawn_mirror(&serial, &adb_path, &options)?;
+    let mut proc_guard = state.scrcpy_process.lock().unwrap();
+    *proc_guard = Some(child);
+
+    Ok(true)
+}
+
+#[tauri::command]
+async fn stop_screen_mirror(state: State<'_, AppState>) -> Result<bool, String> {
+    let mut proc_guard = state.scrcpy_process.lock().unwrap();
+    if let Some(mut child) = proc_guard.take() {
+        let _ = child.kill().await;
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+#[tauri::command]
+async fn is_screen_mirror_running(state: State<'_, AppState>) -> Result<bool, String> {
+    let mut proc_guard = state.scrcpy_process.lock().unwrap();
+    if let Some(ref mut child) = *proc_guard {
+        match child.try_wait() {
+            Ok(None) => Ok(true), // Process is still active
+            _ => {
+                *proc_guard = None;
+                Ok(false)
+            }
+        }
+    } else {
+        Ok(false)
     }
 }
 
@@ -399,10 +463,16 @@ pub fn run() {
             adb_client: Mutex::new(AdbClient::new(None)),
             rule_engine: Mutex::new(RuleEngine::new()),
             backup_manager: Mutex::new(BackupManager::new()),
+            scrcpy_process: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             check_adb_status,
             download_install_adb,
+            check_scrcpy_status,
+            download_install_scrcpy,
+            start_screen_mirror,
+            stop_screen_mirror,
+            is_screen_mirror_running,
             get_connected_devices,
             get_device_details,
             get_installed_packages,

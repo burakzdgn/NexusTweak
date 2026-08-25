@@ -24,7 +24,7 @@
     <a href="#-oem-destek-tablosu">OEM Desteği</a> •
     <a href="#-mimari">Mimari</a> •
     <a href="#-kurulum-ve-başlatma">Kurulum</a> •
-    <a href="#-güvenlik-ve-geri-alma-felsefesi">Güvenlik</a>
+    <a href="#-üçüncü-taraf-lisans-atıfları">Lisans Atıfları</a>
   </p>
 
 </div>
@@ -36,7 +36,7 @@
 
 > [!CAUTION]
 > **KULLANIM VE UYGULAMA SORUMLULUĞU TAMAMEN KULLANICIYA AİTTİR.**
-> NexusTweak, Android işletim sisteminin alt seviye ADB komutlarını, ekran çözünürlüğü ve yoğunluk ayarlarını (`wm size` / `wm density`), paket devre dışı bırakma (debloat) ve sistem optimizasyonlarını çalıştıran güçlü bir araçtır.
+> NexusTweak, Android işletim sisteminin alt seviye ADB komutlarını, ekran çözünürlüğü ve yoğunluk ayarlarını (`wm size` / `wm density`), canlı ekran yansıtmayı, paket devre dışı bırakma (debloat) ve sistem optimizasyonlarını çalıştıran güçlü bir araçtır.
 > - Bu yazılım aracılığıyla yapılan tüm değişiklikler kullanıcının kendi rızası ve sorumluluğundadır.
 > - NexusTweak geliştiricileri ve katkıda bulunanlar; oluşabilecek doğrudan veya dolaylı veri kaybı, bootloop (cihazın açılmaması), donanım/yazılım kararsızlıkları veya cihaz garantisinin etkilenmesi durumunda **HİÇBİR HUKUKİ VE TEKNİK SORUMLULUK KABUL ETMEZ**.
 > - Önemli işlemlerden önce her zaman bağımsız verilerinizi yedekleyiniz ve snapshot kayıtlarını kontrol ediniz.
@@ -45,7 +45,7 @@
 
 ## 📖 Proje Hakkında
 
-**NexusTweak**, Android cihazlarınızı USB veya Kablosuz (Wi-Fi) ADB üzerinden derinlemesine analiz eden, tek tıkla optimizasyon profilleri sunan, toplu APK yükleyip/çıkarabilen, ekran çözünürlüğü ve DPI ölçeğini ayarlayan, gereksiz üretici şişkinliklerini (bloatware) güvenle temizleyen açık kaynaklı bir masaüstü uygulamasıdır.
+**NexusTweak**, Android cihazlarınızı USB veya Kablosuz (Wi-Fi) ADB üzerinden derinlemesine analiz eden, scrcpy motoruyla ekran yansıtan, tek tıkla optimizasyon profilleri sunan, toplu APK yükleyip/çıkarabilen, ekran çözünürlüğü ve DPI ölçeğini ayarlayan, gereksiz üretici şişkinliklerini (bloatware) güvenle temizleyen açık kaynaklı bir masaüstü uygulamasıdır.
 
 Tüm işlemler öncesinde **otomatik anlık görüntü (snapshot)** alınır, değişiklik farkları (diff) incelenebilir ve tek tıkla **Geri Alma (Rollback)** imkanı sunulur.
 
@@ -53,44 +53,51 @@ Tüm işlemler öncesinde **otomatik anlık görüntü (snapshot)** alınır, de
 
 ## ✨ Temel Özellikler
 
-### ⚡ 1. Tek Tıkla Optimizasyon Profilleri (Faz 1)
+### 📱 1. Canlı Ekran Yansıtma ve Kontrol (scrcpy Entegrasyonu)
+- **Sıfır Gecikmeli Akış:** 120 FPS'ye kadar yüksek akıcılıkta ekran yansıtma, tam fare jestleri ve klavye girişi.
+- **Ekran Kapalı Yansıtma:** Telefonun fiziksel ekranını kapatıp görüntüyü sadece PC'de göstererek ısınmayı ve pil tüketimini engeller.
+- **MP4 Video Kaydı:** Yansıtma oturumunu doğrudan `recordings/` klasörüne tek tıkla HD video kaydeder.
+- **Her Zaman Üstte & Ses Kontrolü:** Yansıtma penceresini üstte sabitleme ve cihaz sesini sessize alma seçenekleri.
+- **1-Tıkla scrcpy İndirici:** Sistemde scrcpy bulunmadığında resmi GitHub release paketini tek tıkla otomatik indirir.
+
+### ⚡ 2. Tek Tıkla Optimizasyon Profilleri
 - **🎮 Oyun & Yüksek Performans Modu:** Sıfır animasyon gecikmesi, 120Hz/144Hz panel kilitleme, Joyose/GOS kısıtlamalarını askıya alma, Cloudflare düşük gecikmeli DoH DNS.
 - **🔋 Aşırı Pil Tasarrufu Modu:** 60Hz ekran kilidi, agresif Doze derin uyku ayarları, Wi-Fi tarama kısıtlamaları, arka plan telemetri durdurma.
 - **🛡️ Maksimum Gizlilik Modu:** AdGuard şifreli reklam engelleyici DoT DNS, tanılama servislerini devre dışı bırakma, kilit ekranı reklamlarını kapatma.
 - **⚖️ Dengeli Günlük Kullanım:** 0.5x akıcı animasyonlar, adaptif yenileme hızı, güvenli Cloudflare DNS.
 
-### 📦 2. Gelişmiş APK Yönetim Paketi (Faz 2)
+### 📦 3. Gelişmiş APK Yönetim Paketi
 - **Toplu APK Yükleyici:** Sürükle-bırak yöntemiyle birden fazla `.apk` dosyasını sıraya ekleyip tek seferde cihaza yükleme.
 - **Yüklü Uygulamalardan APK Çıkarıcı (Dumper):** Cihazdaki uygulamaları arayıp ham `.apk` dosyasını tek tıkla bilgisayara (`extracted_apks/`) indirme.
 
-### 🖥️ 3. Ekran Çözünürlüğü ve DPI Ayarlayıcı (Faz 3)
+### 🖥️ 4. Ekran Çözünürlüğü ve DPI Ayarlayıcı
 - **Çözünürlük Ölçeklendirme (`wm size`):** FHD+ (1080p), QHD+ (1440p), HD+ (720p) veya özel çözünürlük ile GPU yükünü ve güç tüketimini azaltma.
 - **DPI Yoğunluk Ayarı (`wm density`):** Arayüzü sıkılaştırma veya uygulamalarda **Tablet Modu** arayüzünü tetikleme. Tek tıkla varsayılan çözünürlük/DPI değerlerine dönme.
 
-### 🔍 4. Derin Donanım ve Telemetri Analizi
+### 🔍 5. Derin Donanım ve Telemetri Analizi
 - **Yonga Seti & İşlemci:** SoC platformu, CPU mimarisi (`arm64-v8a`), üretici, model ve derleme kimliği.
 - **Ekran Telemetrisi:** Panel çözünürlüğü, piksel yoğunluğu (DPI), aktif yenileme hızı ve dinamik panel hızları (60Hz / 90Hz / 120Hz / 144Hz).
 - **Batarya ve Sıcaklık Monitörü:** `dumpsys battery` üzerinden çekirdek batarya sıcaklığı (°C), voltaj (V), sağlık durumu ve şarj kaynağı.
 - **Sistem Güvenlik Durumu:** Root denetimi (Magisk/KernelSU), SELinux durumu (*Enforcing/Permissive*), Android ve SDK sürümü.
 
-### 🗑️ 5. Güvenli Debloat Yöneticisi
+### 🗑️ 6. Güvenli Debloat Yöneticisi
 - **Risk Sınıflandırması:** Safe (Tamamen Güvenli), Moderate (Orta) ve Advanced (Gelişmiş) seviyeler.
 - **Zararsız Devre Dışı Bırakma:** `--user 0` standardı ile ROM bölüntüsünü bozmadan kullanıcı alanında güvenli devre dışı bırakma.
 - **Toplu İşlem Barı:** Seçilen tüm paketleri tek tıkla debloat edebilme.
 
-### 🛡️ 6. 1-Click Rollback & Detaylı Diff İnceleyici
+### 🛡️ 7. 1-Click Rollback & Detaylı Diff İnceleyici
 - **Otomatik Anlık Durum Kaydı:** Herhangi bir ayar uygulanmadan önce cihaz adı, tarih ve ayar değerleri `device_backups/<device_id>_<timestamp>.json` dosyasına kaydedilir.
 - **Detaylı Diff İnceleyici:** Geri yükleme yapıldığında hangi ayarların ve hangi paketlerin eski haline döneceğini açıkça gösterir.
 - **Kritik Whitelist:** `SystemUI`, `Launcher`, `Dialer`, `Google Play Services`, `KeyChain` ve `Settings` paketlerinin silinmesini engelleyen kilit koruması.
 
-### 💻 7. Etkileşimli ADB Terminal Çekmecesi
+### 💻 8. Etkileşimli ADB Terminal Çekmecesi
 - Sağ üstteki **Terminal Konsolu** butonuna basıldığında ekranın altından yukarı doğru açılan interaktif terminal çekmecesi.
 - Canlı ANSI renkli log akışı ve hazır teşhis komutları (`dumpsys battery`, `wm size`, `getprop`, `pm list`).
 
-### ⬇️ 8. 1-Tıkla Otomatik Google ADB İndirici
+### ⬇️ 9. 1-Tıkla Otomatik Google ADB İndirici
 - Sistemde ADB kurulu olmadığında resmi Google Android sunucularından platform-tools paketini tek tıkla indirip otomatik yapılandırır.
 
-### 🌐 9. Çoklu Dil Desteği (i18n)
+### 🌐 10. Çoklu Dil Desteği (i18n)
 - Arayüz üzerinden **Türkçe (TR)** ve **English (EN)** dilleri arasında anında geçiş.
 
 ---
@@ -106,59 +113,10 @@ Tüm işlemler öncesinde **otomatik anlık görüntü (snapshot)** alınır, de
 
 ---
 
-## 🏗️ Mimari
+## 📜 Üçüncü Taraf Lisans Atıfları
 
-```mermaid
-graph TD
-    A[Kullanıcı Arayüzü - React 18 + TypeScript + Tailwind] --> B[Zustand State Stores]
-    B --> C[Unified AdbBridge Katmanı]
-    C -->|Tauri IPC Invoke| D[Rust Backend - Tauri v2]
-    D --> E[AdbClient & Process Runner]
-    D --> F[Kural & Öneri Motoru]
-    D --> G[Yedek & Rollback Yöneticisi]
-    E --> H[Android Cihaz - USB / Wi-Fi ADB]
-    G --> I[(device_backups/*.json)]
-    F --> J[(rules_db/*.json)]
-```
-
----
-
-## 🚀 Kurulum ve Başlatma
-
-### Gereksinimler
-- [Node.js](https://nodejs.org/) (v18 veya üstü)
-- [Rust & Cargo](https://www.rust-lang.org/tools/install) (Tauri v2 derlemesi için)
-- Android Cihazda **Geliştirici Seçenekleri** ve **USB Hata Ayıklama (USB Debugging)** açık olmalıdır.
-
-### 1. Depoyu Klonlayın
-```bash
-git clone https://github.com/burakzdgn/NexusTweak.git
-cd NexusTweak
-```
-
-### 2. Bağımlılıkları Yükleyin
-```bash
-npm install
-```
-
-### 3. Geliştirme Modunda Çalıştırın
-
-#### Web Önizleme Modu
-```bash
-npm run dev
-```
-> Tarayıcınızda `http://localhost:1420` adresini açın.
-
-#### Masaüstü Uygulaması Olarak Çalıştırma (Tauri + Rust)
-```bash
-npm run tauri dev
-```
-
-### 4. Üretim Paketi Oluşturma
-```bash
-npm run tauri build
-```
-> Kurulum dosyaları `src-tauri/target/release/bundle/` altında oluşturulur (`.msi`, `.exe`, `.dmg`, `.deb`).
+- **[scrcpy](https://github.com/Genymobile/scrcpy)** — Ekran yansıtma ve kontrol motoru, [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Telif Hakkı Genymobile / Romain Vimont) altında lisanslanmıştır.
+- **Google Android Platform-Tools** — Google tarafından Android Software Development Kit Lisansı ile dağıtılan resmi ADB ikilileri.
 
 ---
 

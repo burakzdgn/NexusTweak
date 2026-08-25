@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard,
+  Cast,
   Zap,
   Sliders,
   Package,
@@ -16,11 +17,13 @@ import { clsx } from 'clsx';
 import { useTweaksStore } from '../../stores/useTweaksStore';
 import { useDebloatStore } from '../../stores/useDebloatStore';
 import { useBackupStore } from '../../stores/useBackupStore';
+import { useMirrorStore } from '../../stores/useMirrorStore';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 import { DisclaimerModal } from '../legal/DisclaimerModal';
 
 export type NavTab =
   | 'dashboard'
+  | 'mirror'
   | 'profiles'
   | 'tweaks'
   | 'apk'
@@ -39,6 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const rules = useTweaksStore((s) => s.rules);
   const packages = useDebloatStore((s) => s.packages);
   const backups = useBackupStore((s) => s.backups);
+  const isMirroring = useMirrorStore((s) => s.isMirroring);
   const t = useLanguageStore((s) => s.t);
   const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
 
@@ -51,6 +55,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
       label: t.tab_dashboard,
       icon: LayoutDashboard,
       badge: null,
+    },
+    {
+      id: 'mirror' as NavTab,
+      label: t.tab_mirror,
+      icon: Cast,
+      badge: isMirroring ? 'LIVE' : null,
+      badgeColor: 'emerald',
     },
     {
       id: 'profiles' as NavTab,
@@ -163,6 +174,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
                         'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
                       item.badgeColor === 'amber' &&
                         'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                      item.badgeColor === 'emerald' &&
+                        'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 font-mono font-bold animate-pulse',
                       item.badgeColor === 'slate' &&
                         'bg-slate-800 text-slate-400 border-slate-700'
                     )}
