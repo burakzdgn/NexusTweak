@@ -1,0 +1,100 @@
+[
+  {
+    "id": "pixel_tips_feedback_debloat",
+    "name": "Pixel Tips & Setup Feedback",
+    "description": "Disables Google Pixel introductory tips and feedback prompt agents running in the background.",
+    "category": "debloat",
+    "risk": "Safe",
+    "targetOem": "google",
+    "minSdk": 28,
+    "packages": [
+      "com.google.android.apps.tips",
+      "com.google.android.feedback"
+    ],
+    "applyCommands": [
+      "pm disable-user --user 0 com.google.android.apps.tips",
+      "pm disable-user --user 0 com.google.android.feedback"
+    ],
+    "revertCommands": [
+      "pm enable com.google.android.apps.tips",
+      "pm enable com.google.android.feedback"
+    ],
+    "tags": ["pixel", "google", "debloat"]
+  },
+  {
+    "id": "pixel_ambient_sound_search_disable",
+    "name": "Now Playing / Ambient Sound Search",
+    "description": "Disables persistent microphone listening for background song identification to maximize battery life.",
+    "category": "battery",
+    "risk": "Safe",
+    "targetOem": "google",
+    "minSdk": 28,
+    "packages": [
+      "com.google.audio.hearing.visualization.accessibility.scribe",
+      "com.google.android.as.oss"
+    ],
+    "applyCommands": [
+      "pm disable-user --user 0 com.google.audio.hearing.visualization.accessibility.scribe"
+    ],
+    "revertCommands": [
+      "pm enable com.google.audio.hearing.visualization.accessibility.scribe"
+    ],
+    "tags": ["pixel", "battery", "microphone", "privacy"]
+  },
+  {
+    "id": "pixel_device_health_services_tuning",
+    "name": "Adaptive Battery Telemetry Tuning",
+    "description": "Reduces diagnostic polling rate of Device Health Services telemetry workers.",
+    "category": "privacy",
+    "risk": "Moderate",
+    "targetOem": "google",
+    "minSdk": 28,
+    "packages": [
+      "com.google.android.apps.turbo"
+    ],
+    "applyCommands": [
+      "pm disable-user --user 0 com.google.android.apps.turbo"
+    ],
+    "revertCommands": [
+      "pm enable com.google.android.apps.turbo"
+    ],
+    "tags": ["pixel", "telemetry", "privacy"]
+  },
+  {
+    "id": "pixel_carrier_services_debloat",
+    "name": "Carrier Services RCS Telemetry",
+    "description": "Disables Google Carrier Services if using standard SIM without operator custom IMS enhancements.",
+    "category": "debloat",
+    "risk": "Moderate",
+    "targetOem": "google",
+    "minSdk": 26,
+    "packages": [
+      "com.google.android.ims"
+    ],
+    "applyCommands": [
+      "pm disable-user --user 0 com.google.android.ims"
+    ],
+    "revertCommands": [
+      "pm enable com.google.android.ims"
+    ],
+    "tags": ["pixel", "carrier", "network"]
+  },
+  {
+    "id": "pixel_quick_tap_optimize",
+    "name": "Columbus Gestures (Quick Tap) Deactivation",
+    "description": "Disables accelerometer high-frequency polling for back tap gesture recognition to save battery.",
+    "category": "battery",
+    "risk": "Safe",
+    "targetOem": "google",
+    "minSdk": 31,
+    "applyCommands": [
+      "settings put secure columbus_enabled 0"
+    ],
+    "revertCommands": [
+      "settings put secure columbus_enabled 1"
+    ],
+    "verifyCommand": "settings get secure columbus_enabled",
+    "expectedValue": "0",
+    "tags": ["pixel", "gestures", "battery"]
+  }
+]

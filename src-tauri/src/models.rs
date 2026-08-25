@@ -1,0 +1,138 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdbDevice {
+    pub serial: String,
+    pub state: String,
+    pub model: String,
+    pub product: String,
+    pub device: String,
+    pub transport_id: String,
+    pub is_mock: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatteryInfo {
+    pub level: u32,
+    pub temperature_c: f32,
+    pub voltage_mv: u32,
+    pub health: String,
+    pub status: String,
+    pub plugged: String,
+    pub technology: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisplayInfo {
+    pub width: u32,
+    pub height: u32,
+    pub density_dpi: u32,
+    pub refresh_rate_hz: f32,
+    pub supported_refresh_rates: Vec<f32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceInfo {
+    pub serial: String,
+    pub model: String,
+    pub manufacturer: String,
+    pub brand: String,
+    pub product_name: String,
+    pub device_codename: String,
+    pub android_version: String,
+    pub sdk_version: u32,
+    pub build_id: String,
+    pub security_patch: String,
+    pub soc_platform: String,
+    pub soc_manufacturer: String,
+    pub cpu_abi: String,
+    pub total_ram_mb: u64,
+    pub available_ram_mb: u64,
+    pub is_rooted: bool,
+    pub selinux_enforcing: bool,
+    pub battery: BatteryInfo,
+    pub display: DisplayInfo,
+    pub is_mock: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PackageInfo {
+    pub package_name: String,
+    pub apk_path: String,
+    pub is_system: bool,
+    pub is_enabled: bool,
+    pub app_name: Option<String>,
+    pub installer: Option<String>,
+    pub is_whitelisted: bool,
+    pub bloat_category: Option<String>,
+    pub bloat_description: Option<String>,
+    pub risk_level: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum RiskLevel {
+    Safe,
+    Moderate,
+    Advanced,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TweakRule {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub category: String,
+    pub risk: RiskLevel,
+    pub target_oem: String,
+    pub min_sdk: Option<u32>,
+    pub max_sdk: Option<u32>,
+    pub packages: Option<Vec<String>>,
+    pub apply_commands: Vec<String>,
+    pub revert_commands: Vec<String>,
+    pub verify_command: Option<String>,
+    pub expected_value: Option<String>,
+    pub current_value: Option<String>,
+    pub is_applied: Option<bool>,
+    pub tags: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupSnapshot {
+    pub id: String,
+    pub device_serial: String,
+    pub timestamp: String,
+    pub note: String,
+    pub settings_global: std::collections::HashMap<String, String>,
+    pub settings_system: std::collections::HashMap<String, String>,
+    pub settings_secure: std::collections::HashMap<String, String>,
+    pub disabled_packages: Vec<String>,
+    pub uninstalled_packages: Vec<String>,
+    pub applied_tweak_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdbExecutionResult {
+    pub success: bool,
+    pub command: String,
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
+    pub execution_time_ms: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HealthScore {
+    pub total_score: u32,
+    pub battery_score: u32,
+    pub privacy_score: u32,
+    pub animation_score: u32,
+    pub debloat_score: u32,
+    pub recommendations: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WhitelistEntry {
+    pub package: String,
+    pub reason: String,
+    pub category: String,
+}

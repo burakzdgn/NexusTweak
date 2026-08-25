@@ -1,0 +1,105 @@
+{
+  "description": "Essential Android OS packages that are critical for device booting, UI, emergency services, and basic telephony.",
+  "whitelist": [
+    {
+      "package": "android",
+      "reason": "Android Core Framework",
+      "category": "core"
+    },
+    {
+      "package": "com.android.systemui",
+      "reason": "System Status Bar, Navigation, and Notification Shade",
+      "category": "ui"
+    },
+    {
+      "package": "com.android.settings",
+      "reason": "System Settings Application",
+      "category": "settings"
+    },
+    {
+      "package": "com.google.android.gms",
+      "reason": "Google Play Services Runtime & Authentication",
+      "category": "play_services"
+    },
+    {
+      "package": "com.google.android.gsf",
+      "reason": "Google Services Framework",
+      "category": "play_services"
+    },
+    {
+      "package": "com.android.vending",
+      "reason": "Google Play Store (Required for App Licenses & Updates)",
+      "category": "play_services"
+    },
+    {
+      "package": "com.android.phone",
+      "reason": "Telephony, SIM & Cell Connectivity Daemon",
+      "category": "telephony"
+    },
+    {
+      "package": "com.android.server.telecom",
+      "reason": "Emergency Calls and Telecom Routing",
+      "category": "telephony"
+    },
+    {
+      "package": "com.android.dialer",
+      "reason": "Default Phone Dialer",
+      "category": "telephony"
+    },
+    {
+      "package": "com.google.android.dialer",
+      "reason": "Google Phone App",
+      "category": "telephony"
+    },
+    {
+      "package": "com.android.launcher3",
+      "reason": "Default Android AOSP Home Launcher",
+      "category": "launcher"
+    },
+    {
+      "package": "com.google.android.apps.nexuslauncher",
+      "reason": "Pixel Home Launcher",
+      "category": "launcher"
+    },
+    {
+      "package": "com.sec.android.app.launcher",
+      "reason": "Samsung One UI Home Launcher",
+      "category": "launcher"
+    },
+    {
+      "package": "com.miui.home",
+      "reason": "Xiaomi HyperOS / MIUI System Launcher",
+      "category": "launcher"
+    },
+    {
+      "package": "com.android.keychain",
+      "reason": "Cryptographic Key Storage & Certificates",
+      "category": "security"
+    },
+    {
+      "package": "com.android.packageinstaller",
+      "reason": "Android Package Installer Subsystem",
+      "category": "core"
+    },
+    {
+      "package": "com.google.android.packageinstaller",
+      "reason": "Google Package Installer Subsystem",
+      "category": "core"
+    },
+    {
+      "package": "com.android.permissioncontroller",
+      "reason": "Runtime Permissions Security Gatekeeper",
+      "category": "security"
+    },
+    {
+      "package": "com.android.providers.telephony",
+      "reason": "SMS/MMS and APN Database Provider",
+      "category": "telephony"
+    },
+    {
+      "package": "com.android.providers.settings",
+      "reason": "System Settings Storage Provider",
+      "category": "settings"
+    }
+  ]
+}
