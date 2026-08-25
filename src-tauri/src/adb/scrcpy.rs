@@ -201,13 +201,12 @@ impl ScrcpyManager {
             cmd.arg(format!("--record={}", rec_file.to_string_lossy()));
         }
 
-        cmd.stdout(Stdio::null());
-        cmd.stderr(Stdio::null());
-
-        #[cfg(target_os = "windows")]
-        {
-            const CREATE_NO_WINDOW: u32 = 0x08000000;
-            cmd.creation_flags(CREATE_NO_WINDOW);
+        // Set working directory if scrcpy is in a local directory
+        let scrcpy_path_buf = PathBuf::from(&scrcpy_bin);
+        if let Some(parent) = scrcpy_path_buf.parent() {
+            if parent.exists() && !parent.as_os_str().is_empty() {
+                cmd.current_dir(parent);
+            }
         }
 
         cmd.spawn().map_err(|e| format!("Failed to spawn scrcpy process: {}", e))
