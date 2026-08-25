@@ -21,6 +21,7 @@
 
   <p align="center">
     <a href="#-key-features">Key Features</a> •
+    <a href="#-disclaimer-of-liability">Disclaimer</a> •
     <a href="#-supported-oem-presets">OEM Presets</a> •
     <a href="#-architecture">Architecture</a> •
     <a href="#-quick-start">Quick Start</a> •
@@ -33,50 +34,65 @@
 ---
 
 <a name="english"></a>
+## ⚠️ Disclaimer of Liability
+
+> [!CAUTION]
+> **USE AT YOUR OWN RISK.**
+> NexusTweak provides powerful low-level Android ADB commands, system property tuning, screen resolution modifications (`wm size` / `wm density`), and package debloating.
+> - All optimizations and debloat operations are performed solely at the user's own discretion and risk.
+> - The developers and contributors of NexusTweak assume **NO RESPONSIBILITY OR LIABILITY** for any direct or indirect damage, data loss, bootloops, system instability, or voided device warranties.
+> - Always maintain independent data backups and verify rollback snapshots before making extensive modifications.
+
+---
+
 ## 📖 Overview
 
-**NexusTweak** is an open-source, modern, and high-performance desktop application designed to diagnose, optimize, and debloat Android devices via USB or Wireless (Wi-Fi) ADB.
+**NexusTweak** is an open-source, modern, and high-performance desktop application designed to diagnose, optimize, debloat, and manage Android devices via USB or Wireless (Wi-Fi) ADB.
 
-Built with **Tauri v2 (Rust)** and a **React 18 + TypeScript + Tailwind CSS** interface, it enables users to identify deep hardware telemetry, apply manufacturer-tailored performance tweaks, safely disable unnecessary OEM background bloatware, inspect exact before/after settings diffs, and perform 1-click rollbacks using automated snapshot backups.
+Built with **Tauri v2 (Rust backend)** and a **React 18 + TypeScript + Tailwind CSS** interface, it delivers deep hardware telemetry, 1-click optimization profiles, batch APK installation & extraction, display resolution & DPI customization, and automated rollback snapshots.
 
 ---
 
 ## ✨ Key Features
 
-### 🔍 1. Deep Hardware & Telemetry Diagnostics
+### ⚡ 1. One-Click Optimization Profiles (Phase 1)
+- **🎮 Gaming & Ultra Performance:** Instant 0.0x animations, 120Hz/144Hz refresh rate lock, GOS/Joyose throttling bypass, and Cloudflare gaming DNS.
+- **🔋 Extreme Battery Saver:** 60Hz lock, aggressive Doze deep sleep standby tuning, Wi-Fi scan throttling, background analytics suspension.
+- **🛡️ Ultra Privacy & Clean:** AdGuard Encrypted DoT DNS, telemetry daemons isolation, lockscreen ad carousels deactivation.
+- **⚖️ Balanced Daily Driver:** 0.5x responsive UI transitions, adaptive dynamic Hz, and Cloudflare privacy DNS.
+
+### 📦 2. Advanced APK Management Suite (Phase 2)
+- **Batch APK Installer:** Drag-and-drop multiple `.apk` files to install them seamlessly to user 0.
+- **APK Extractor / Dumper:** Search installed applications and dump raw base `.apk` files directly to your computer (`extracted_apks/`).
+
+### 🖥️ 3. Screen Resolution & DPI Customizer (Phase 3)
+- **Resolution Tuning (`wm size`):** Switch between FHD+ (1080p), QHD+ (1440p), HD+ (720p), or custom width × height to reduce GPU load and battery drain.
+- **DPI Density Scaling (`wm density`):** Scale interface density or force dual-column **Tablet Mode** in apps with 1-click Reset to Native resolution/density.
+
+### 🔍 4. Deep Hardware & Telemetry Diagnostics
 - **SoC & Processor:** Chipset model, CPU ABI architecture (`arm64-v8a`), device codename, manufacturer, and build ID.
 - **Display Telemetry:** Panel resolution, pixel density (DPI), active refresh rate, and dynamic refresh rate levels (60Hz / 90Hz / 120Hz / 144Hz).
 - **Battery & Thermal Monitoring:** Live `dumpsys battery` extraction for core battery temperature (°C), voltage (V), health state, and power source.
 - **Security & System Status:** Root detection (Magisk/KernelSU), SELinux enforcement level (*Enforcing/Permissive*), Android & SDK release, and security patch date.
 
-### ⚡ 2. Rule & Optimization Engine
-- **UI & Motion Fluidity:** Scale window, transition, and animator durations down to `0.5x` or `0.0x` for instantaneous system responsiveness.
-- **120Hz/144Hz Lock:** Force peak refresh rates by locking `min_refresh_rate` to `peak_refresh_rate` to eliminate scrolling micro-stutters.
-- **Encrypted & Ad-Blocking DNS:** 1-click configuration of Cloudflare (1.1.1.1 DoH) or AdGuard Ad-Blocking (DoT) DNS.
-- **Standby Battery Savings:** Aggressive Doze idle parameter tuning to enter deep sleep faster when the screen is turned off.
-- **Wi-Fi Latency Tuning:** Optimize Wi-Fi scan throttling for low-latency network handoffs.
-
-### 🗑️ 3. Safe Debloat Hub
-- **Risk Classification:**
-  - 🟢 **Safe:** Pure background advertisements, promotional pushers, and usage analytics.
-  - 🟡 **Moderate:** Manufacturer-specific feature stubs (Samsung Pay, Game Optimizing Service, etc.).
-  - 🔴 **Advanced:** Packages requiring careful consideration before modification.
+### 🗑️ 5. Safe Debloat Hub
+- **Risk Classification:** Safe, Moderate, and Advanced risk tier categorization.
 - **Non-Destructive Removal:** Uses `--user 0` isolation to safely disable apps without altering system read-only partitions.
 - **Bulk Action Bar:** Floating action toolbar to apply or debloat multiple selected items simultaneously.
 
-### 🛡️ 4. 1-Click Rollback & Detailed Diff Inspector
+### 🛡️ 6. 1-Click Rollback & Detailed Diff Inspector
 - **Automatic State Snapshots:** Every tweak or debloat action automatically captures device name, formatted timestamp, and exact global/system/secure settings values into `device_backups/<device_id>_<timestamp>.json`.
 - **Detailed Diff Viewer:** Inspects precisely what settings and packages will be restored before executing a rollback.
 - **System Whitelist Protection:** Strict safety barrier preventing accidental deletion of vital OS packages (`SystemUI`, `Launcher`, `Dialer`, `Play Services`, `Settings`, `KeyChain`).
 
-### 💻 5. Interactive ADB Shell Drawer & Quick Presets
+### 💻 7. Interactive ADB Shell Drawer & Quick Presets
 - Top-right **Terminal Console** button triggers a slide-up terminal drawer on any screen.
 - Real-time ANSI colored execution stream and 1-click diagnostic command presets (`dumpsys battery`, `wm size`, `getprop`, `pm list`).
 
-### ⬇️ 6. 1-Click Google ADB Platform-Tools Downloader
+### ⬇️ 8. 1-Click Google ADB Platform-Tools Downloader
 - Detects if ADB is missing on the system and automatically downloads official Google platform-tools archives directly into `binaries/platform-tools/`.
 
-### 🌐 7. Multi-Language Localization (i18n)
+### 🌐 9. Multi-Language Localization (i18n)
 - Seamless real-time language switching between **English (EN)** and **Türkçe (TR)**.
 
 ---
@@ -145,65 +161,6 @@ npm run tauri dev
 npm run tauri build
 ```
 > Generated binary packages (`.msi`, `.exe`, `.dmg`, `.deb`) will be located in `src-tauri/target/release/bundle/`.
-
----
-
-## 🔒 Safety & Rollback Philosophy
-
-> [!IMPORTANT]
-> NexusTweak is engineered with **Safety-First** principles:
-> 1. **Non-Destructive:** Packages are disabled using `pm disable-user --user 0` and `pm uninstall -k --user 0`, keeping the original ROM image intact.
-> 2. **Pre-Action Snapshots:** Every tweak or batch operation automatically saves a timestamped JSON state dump.
-> 3. **Immutable Whitelist:** Core operating system services required for device booting and telephony cannot be disabled.
-
----
-
-## 📁 Repository Structure
-
-```
-NexusTweak/
-├── src-tauri/                 # Rust Backend (Tauri v2)
-│   ├── Cargo.toml             # Rust dependencies
-│   ├── tauri.conf.json        # Tauri configuration & window security
-│   ├── rules_db/              # OEM and Generic optimization JSON databases
-│   │   ├── generic_tweaks.json
-│   │   ├── samsung_oneui.json
-│   │   ├── xiaomi_miui.json
-│   │   ├── google_pixel.json
-│   │   └── system_whitelist.json
-│   └── src/
-│       ├── main.rs            # Windows subsystem entry point
-│       ├── lib.rs             # Tauri command invoke handlers
-│       ├── models.rs          # Strongly-typed data structs
-│       ├── adb/               # ADB client, command executor, scanner
-│       └── rules/             # Rule engine, snapshot creator & rollback manager
-├── src/                       # Frontend (React 18 + TypeScript + Tailwind)
-│   ├── components/
-│   │   ├── dashboard/         # Specs card, metric gauges, battery, score
-│   │   ├── tweaks/            # Tweak cards, category & risk filters
-│   │   ├── debloat/           # Package manager table, whitelist modal
-│   │   ├── backup/            # Backup timeline, detailed snapshot diff modal
-│   │   ├── terminal/          # Terminal view & slide-up terminal drawer
-│   │   ├── settings/          # Wi-Fi pairing, ADB path & installer
-│   │   └── layout/            # Sidebar, Header, BatchActionBar
-│   ├── i18n/                  # Multi-language translation dictionaries (TR / EN)
-│   ├── stores/                # Zustand state stores
-│   ├── services/              # AdbBridge IPC client
-│   └── App.tsx                # Main application shell
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-1. Fork the repository (`Fork`).
-2. Create your feature branch (`git checkout -b feature/NewFeature`).
-3. Commit your changes (`git commit -m 'feat: add new OEM optimization rules'`).
-4. Push to the branch (`git push origin feature/NewFeature`).
-5. Open a **Pull Request (PR)**.
-
-To add new optimization rules for an OEM, simply add a structured rule entry into the appropriate JSON file under `src-tauri/rules_db/`.
 
 ---
 

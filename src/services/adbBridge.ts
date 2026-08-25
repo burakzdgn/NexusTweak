@@ -51,6 +51,52 @@ export class AdbBridge {
     return await this.invoke<PackageInfo[]>('get_installed_packages', { serial });
   }
 
+  public static async installApk(serial: string, apkPath: string): Promise<AdbExecutionResult> {
+    return await this.invoke<AdbExecutionResult>('install_apk', { serial, apkPath });
+  }
+
+  public static async extractApk(
+    serial: string,
+    packageName: string,
+    destFolder?: string
+  ): Promise<AdbExecutionResult> {
+    return await this.invoke<AdbExecutionResult>('extract_apk', {
+      serial,
+      packageName,
+      destFolder,
+    });
+  }
+
+  public static async setScreenResolution(
+    serial: string,
+    width: number,
+    height: number
+  ): Promise<AdbExecutionResult> {
+    return await this.invoke<AdbExecutionResult>('set_screen_resolution', {
+      serial,
+      width,
+      height,
+    });
+  }
+
+  public static async resetScreenResolution(serial: string): Promise<AdbExecutionResult> {
+    return await this.invoke<AdbExecutionResult>('reset_screen_resolution', { serial });
+  }
+
+  public static async setScreenDensity(
+    serial: string,
+    density: number
+  ): Promise<AdbExecutionResult> {
+    return await this.invoke<AdbExecutionResult>('set_screen_density', {
+      serial,
+      density,
+    });
+  }
+
+  public static async resetScreenDensity(serial: string): Promise<AdbExecutionResult> {
+    return await this.invoke<AdbExecutionResult>('reset_screen_density', { serial });
+  }
+
   public static async getApplicableRules(serial: string): Promise<TweakRule[]> {
     return await this.invoke<TweakRule[]>('get_applicable_rules', { serial });
   }

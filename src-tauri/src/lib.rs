@@ -3,7 +3,6 @@ pub mod adb;
 pub mod rules;
 
 use std::fs;
-use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::State;
@@ -44,7 +43,6 @@ async fn download_install_adb(state: State<'_, AppState>) -> Result<String, Stri
         "https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
     };
 
-    // Download archive via powershell / curl
     let zip_path = binaries_dir.join("platform-tools.zip");
     
     #[cfg(target_os = "windows")]
@@ -122,6 +120,47 @@ async fn get_installed_packages(serial: String, state: State<'_, AppState>) -> R
     let mut packages = AdbCommands::list_packages(&client, &serial).await?;
     rule_engine.classify_packages(&mut packages);
     Ok(packages)
+}
+
+#[tauri::command]
+async fn install_apk(serial: String, apk_path: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
+    let client = state.adb_client.lock().unwrap().clone();
+    AdbCommands::install_apk(&client, &serial, &apk_path).await
+}
+
+#[tauri::command]
+async fn extract_apk(serial: String, package_name: String, dest_folder: Option<String>, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
+    let client = state.adb_client.lock().unwrap().clone();
+    let dest = dest_folder.unwrap_or_else(|| {
+        let default_dir = PathBuf::from("extracted_apks");
+        let _ = fs::create_dir_all(&default_dir);
+        default_dir.to_string_lossy().to_string()
+    });
+    AdbCommands::extract_apk(&client, &serial, &package_name, &dest).await
+}
+
+#[tauri::command]
+async fn set_screen_resolution(serial: String, width: u32, height: u32, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
+    let client = state.adb_client.lock().unwrap().clone();
+    AdbCommands::set_screen_resolution(&client, &serial, width, height).await
+}
+
+#[tauri::command]
+async fn reset_screen_resolution(serial: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
+    let client = state.adb_client.lock().unwrap().clone();
+    AdbCommands::reset_screen_resolution(&client, &serial).await
+}
+
+#[tauri::command]
+async fn set_screen_density(serial: String, density: u32, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
+    let client = state.adb_client.lock().unwrap().clone();
+    AdbCommands::set_screen_density(&client, &serial, density).await
+}
+
+#[tauri::command]
+async fn reset_screen_density(serial: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
+    let client = state.adb_client.lock().unwrap().clone();
+    AdbCommands::reset_screen_density(&client, &serial).await
 }
 
 #[tauri::command]
@@ -341,9 +380,9 @@ async fn reboot_device(serial: String, mode: Option<String>, state: State<'_, Ap
 }
 
 #[tauri::command]
-async fn connect_wifi_device(ip_port: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
+async fn connect_wifi_device(ipPort: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
     let client = state.adb_client.lock().unwrap().clone();
-    client.connect_wifi(&ip_port).await
+    client.connect_wifi(&ipPort).await
 }
 
 #[tauri::command]
@@ -367,6 +406,12 @@ pub fn run() {
             get_connected_devices,
             get_device_details,
             get_installed_packages,
+            install_apk,
+            extract_apk,
+            set_screen_resolution,
+            reset_screen_resolution,
+            set_screen_density,
+            reset_screen_density,
             get_applicable_rules,
             apply_tweak,
             revert_tweak,

@@ -19,12 +19,12 @@
   [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Cross--Platform-brightgreen?style=for-the-badge)](https://github.com/burakzdgn/NexusTweak)
 
   <p align="center">
-    <a href="#-özellikler">Özellikler</a> •
+    <a href="#-sorumluluk-reddi-beyanı-disclaimer">Sorumluluk Reddi</a> •
+    <a href="#-temel-özellikler">Özellikler</a> •
     <a href="#-oem-destek-tablosu">OEM Desteği</a> •
     <a href="#-mimari">Mimari</a> •
     <a href="#-kurulum-ve-başlatma">Kurulum</a> •
-    <a href="#-güvenlik-ve-geri-alma-felsefesi">Güvenlik</a> •
-    <a href="#-katkıda-bulunma">Katkı</a>
+    <a href="#-güvenlik-ve-geri-alma-felsefesi">Güvenlik</a>
   </p>
 
 </div>
@@ -32,9 +32,20 @@
 ---
 
 <a name="türkçe"></a>
+## ⚠️ Sorumluluk Reddi Beyanı (Disclaimer)
+
+> [!CAUTION]
+> **KULLANIM VE UYGULAMA SORUMLULUĞU TAMAMEN KULLANICIYA AİTTİR.**
+> NexusTweak, Android işletim sisteminin alt seviye ADB komutlarını, ekran çözünürlüğü ve yoğunluk ayarlarını (`wm size` / `wm density`), paket devre dışı bırakma (debloat) ve sistem optimizasyonlarını çalıştıran güçlü bir araçtır.
+> - Bu yazılım aracılığıyla yapılan tüm değişiklikler kullanıcının kendi rızası ve sorumluluğundadır.
+> - NexusTweak geliştiricileri ve katkıda bulunanlar; oluşabilecek doğrudan veya dolaylı veri kaybı, bootloop (cihazın açılmaması), donanım/yazılım kararsızlıkları veya cihaz garantisinin etkilenmesi durumunda **HİÇBİR HUKUKİ VE TEKNİK SORUMLULUK KABUL ETMEZ**.
+> - Önemli işlemlerden önce her zaman bağımsız verilerinizi yedekleyiniz ve snapshot kayıtlarını kontrol ediniz.
+
+---
+
 ## 📖 Proje Hakkında
 
-**NexusTweak**, Android cihazlarınızı USB veya Kablosuz (Wi-Fi) ADB üzerinden derinlemesine analiz eden, gereksiz üretici şişkinliklerini (bloatware ve telemetri) güvenle temizleyen, ekran akıcılığı ve sistem animasyonlarını optimize eden açık kaynaklı bir masaüstü uygulamasıdır.
+**NexusTweak**, Android cihazlarınızı USB veya Kablosuz (Wi-Fi) ADB üzerinden derinlemesine analiz eden, tek tıkla optimizasyon profilleri sunan, toplu APK yükleyip/çıkarabilen, ekran çözünürlüğü ve DPI ölçeğini ayarlayan, gereksiz üretici şişkinliklerini (bloatware) güvenle temizleyen açık kaynaklı bir masaüstü uygulamasıdır.
 
 Tüm işlemler öncesinde **otomatik anlık görüntü (snapshot)** alınır, değişiklik farkları (diff) incelenebilir ve tek tıkla **Geri Alma (Rollback)** imkanı sunulur.
 
@@ -42,40 +53,44 @@ Tüm işlemler öncesinde **otomatik anlık görüntü (snapshot)** alınır, de
 
 ## ✨ Temel Özellikler
 
-### 🔍 1. Derin Donanım ve Telemetri Analizi
+### ⚡ 1. Tek Tıkla Optimizasyon Profilleri (Faz 1)
+- **🎮 Oyun & Yüksek Performans Modu:** Sıfır animasyon gecikmesi, 120Hz/144Hz panel kilitleme, Joyose/GOS kısıtlamalarını askıya alma, Cloudflare düşük gecikmeli DoH DNS.
+- **🔋 Aşırı Pil Tasarrufu Modu:** 60Hz ekran kilidi, agresif Doze derin uyku ayarları, Wi-Fi tarama kısıtlamaları, arka plan telemetri durdurma.
+- **🛡️ Maksimum Gizlilik Modu:** AdGuard şifreli reklam engelleyici DoT DNS, tanılama servislerini devre dışı bırakma, kilit ekranı reklamlarını kapatma.
+- **⚖️ Dengeli Günlük Kullanım:** 0.5x akıcı animasyonlar, adaptif yenileme hızı, güvenli Cloudflare DNS.
+
+### 📦 2. Gelişmiş APK Yönetim Paketi (Faz 2)
+- **Toplu APK Yükleyici:** Sürükle-bırak yöntemiyle birden fazla `.apk` dosyasını sıraya ekleyip tek seferde cihaza yükleme.
+- **Yüklü Uygulamalardan APK Çıkarıcı (Dumper):** Cihazdaki uygulamaları arayıp ham `.apk` dosyasını tek tıkla bilgisayara (`extracted_apks/`) indirme.
+
+### 🖥️ 3. Ekran Çözünürlüğü ve DPI Ayarlayıcı (Faz 3)
+- **Çözünürlük Ölçeklendirme (`wm size`):** FHD+ (1080p), QHD+ (1440p), HD+ (720p) veya özel çözünürlük ile GPU yükünü ve güç tüketimini azaltma.
+- **DPI Yoğunluk Ayarı (`wm density`):** Arayüzü sıkılaştırma veya uygulamalarda **Tablet Modu** arayüzünü tetikleme. Tek tıkla varsayılan çözünürlük/DPI değerlerine dönme.
+
+### 🔍 4. Derin Donanım ve Telemetri Analizi
 - **Yonga Seti & İşlemci:** SoC platformu, CPU mimarisi (`arm64-v8a`), üretici, model ve derleme kimliği.
 - **Ekran Telemetrisi:** Panel çözünürlüğü, piksel yoğunluğu (DPI), aktif yenileme hızı ve dinamik panel hızları (60Hz / 90Hz / 120Hz / 144Hz).
 - **Batarya ve Sıcaklık Monitörü:** `dumpsys battery` üzerinden çekirdek batarya sıcaklığı (°C), voltaj (V), sağlık durumu ve şarj kaynağı.
-- **Sistem Güvenlik Durumu:** Root denetimi (Magisk/KernelSU), SELinux durumu (*Enforcing/Permissive*), Android ve SDK sürümü, Güvenlik yaması tarihi.
+- **Sistem Güvenlik Durumu:** Root denetimi (Magisk/KernelSU), SELinux durumu (*Enforcing/Permissive*), Android ve SDK sürümü.
 
-### ⚡ 2. Kural & Optimizasyon Motoru
-- **Arayüz ve Hız:** Pencere, geçiş ve animatör süre ölçeklerini 0.5x veya 0.0x yaparak gecikmesiz tepki süresi.
-- **120Hz/144Hz Akıcılık Kilidi:** `min_refresh_rate` değerini `peak_refresh_rate` ile eşitleyerek kaydırma esnasında 60Hz'e düşüşü engelleme.
-- **Gizlilik ve Güvenli DNS:** Cloudflare (1.1.1.1 DoH) ve AdGuard Reklam Engelleyici DoT DNS atama.
-- **Pil & Arka Plan:** Agresif Doze derin uyku optimizasyonu ile bekleme süresi pil tasarrufu.
-- **Wi-Fi Tarama:** Gecikmeleri azaltmak için arka plan Wi-Fi kısıtlamalarını optimize etme.
-
-### 🗑️ 3. Güvenli Debloat Yöneticisi
-- **Risk Sınıflandırması:**
-  - 🟢 **Safe:** Sistem kararlılığını etkilemeyen reklam, tanıtım ve telemetri servisleri.
-  - 🟡 **Moderate:** Belirli üretici fonksiyonlarını (Samsung Pay, Joyose vb.) içeren servisler.
-  - 🔴 **Advanced:** Dikkatle incelenmesi gereken ileri düzey paketler.
+### 🗑️ 5. Güvenli Debloat Yöneticisi
+- **Risk Sınıflandırması:** Safe (Tamamen Güvenli), Moderate (Orta) ve Advanced (Gelişmiş) seviyeler.
 - **Zararsız Devre Dışı Bırakma:** `--user 0` standardı ile ROM bölüntüsünü bozmadan kullanıcı alanında güvenli devre dışı bırakma.
 - **Toplu İşlem Barı:** Seçilen tüm paketleri tek tıkla debloat edebilme.
 
-### 🛡️ 4. 1-Click Rollback & Detaylı Diff İnceleyici
+### 🛡️ 6. 1-Click Rollback & Detaylı Diff İnceleyici
 - **Otomatik Anlık Durum Kaydı:** Herhangi bir ayar uygulanmadan önce cihaz adı, tarih ve ayar değerleri `device_backups/<device_id>_<timestamp>.json` dosyasına kaydedilir.
 - **Detaylı Diff İnceleyici:** Geri yükleme yapıldığında hangi ayarların ve hangi paketlerin eski haline döneceğini açıkça gösterir.
 - **Kritik Whitelist:** `SystemUI`, `Launcher`, `Dialer`, `Google Play Services`, `KeyChain` ve `Settings` paketlerinin silinmesini engelleyen kilit koruması.
 
-### 💻 5. Etkileşimli ADB Terminal Çekmecesi
+### 💻 7. Etkileşimli ADB Terminal Çekmecesi
 - Sağ üstteki **Terminal Konsolu** butonuna basıldığında ekranın altından yukarı doğru açılan interaktif terminal çekmecesi.
 - Canlı ANSI renkli log akışı ve hazır teşhis komutları (`dumpsys battery`, `wm size`, `getprop`, `pm list`).
 
-### ⬇️ 6. 1-Tıkla Otomatik Google ADB İndirici
+### ⬇️ 8. 1-Tıkla Otomatik Google ADB İndirici
 - Sistemde ADB kurulu olmadığında resmi Google Android sunucularından platform-tools paketini tek tıkla indirip otomatik yapılandırır.
 
-### 🌐 7. Çoklu Dil Desteği (i18n)
+### 🌐 9. Çoklu Dil Desteği (i18n)
 - Arayüz üzerinden **Türkçe (TR)** ve **English (EN)** dilleri arasında anında geçiş.
 
 ---
@@ -144,29 +159,6 @@ npm run tauri dev
 npm run tauri build
 ```
 > Kurulum dosyaları `src-tauri/target/release/bundle/` altında oluşturulur (`.msi`, `.exe`, `.dmg`, `.deb`).
-
----
-
-## 🔒 Güvenlik ve Geri Alma Felsefesi
-
-> [!IMPORTANT]
-> NexusTweak **"Önce Güvenlik"** prensibiyle inşa edilmiştir:
-> 1. **Salt Okunur / Geri Alınabilir:** Paketler `pm disable-user --user 0` ile devre dışı bırakılır, sistem bölüntüsündeki orijinal dosyalar korunur.
-> 2. **Zorunlu Snapshot:** Her işlem öncesinde tarihli ve cihaz modelli tam durum yedeği kaydedilir.
-> 3. **Whitelist Kalkanı:** Cihazın açılmasını sağlayan çekirdek servisler listeden silinemez.
-
----
-
-## 🤝 Katkıda Bulunma
-
-Katkılarınızı memnuniyetle kabul ediyoruz!
-1. Depoyu Fork'layın (`Fork`).
-2. Yeni özellik dalı oluşturun (`git checkout -b feature/YeniKural`).
-3. Değişikliklerinizi commit edin (`git commit -m 'feat: yeni debloat kuralları eklendi'`).
-4. Dalınıza push yapın (`git push origin feature/YeniKural`).
-5. Bir **Pull Request (PR)** açın.
-
-Yeni bir OEM kuralı eklemek için `src-tauri/rules_db/` altındaki ilgili JSON dosyasına ekleme yapabilirsiniz.
 
 ---
 

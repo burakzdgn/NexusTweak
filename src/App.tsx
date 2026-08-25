@@ -3,7 +3,10 @@ import { Sidebar, NavTab } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { BatchActionBar } from './components/layout/BatchActionBar';
 import { DashboardView } from './components/dashboard/DashboardView';
+import { ProfilesView } from './components/profiles/ProfilesView';
 import { TweaksView } from './components/tweaks/TweaksView';
+import { ApkManagerView } from './components/apk/ApkManagerView';
+import { DisplayCustomizerView } from './components/display/DisplayCustomizerView';
 import { DebloatView } from './components/debloat/DebloatView';
 import { BackupsView } from './components/backup/BackupsView';
 import { TerminalView } from './components/terminal/TerminalView';
@@ -22,8 +25,14 @@ export const App: React.FC = () => {
     switch (activeTab) {
       case 'dashboard':
         return <DashboardView onNavigate={(tab) => setActiveTab(tab)} />;
+      case 'profiles':
+        return <ProfilesView />;
       case 'tweaks':
         return <TweaksView />;
+      case 'apk':
+        return <ApkManagerView />;
+      case 'display':
+        return <DisplayCustomizerView />;
       case 'debloat':
         return <DebloatView />;
       case 'backups':
@@ -55,7 +64,7 @@ export const App: React.FC = () => {
         {/* Floating Batch Action Bottom Bar */}
         <BatchActionBar currentTab={activeTab} />
 
-        {/* Interactive Bottom Slide-Up Terminal Drawer (Triggered from Top Right Header) */}
+        {/* Interactive Bottom Slide-Up Terminal Drawer */}
         <TerminalDrawer />
 
         {/* Floating Action Toasts */}

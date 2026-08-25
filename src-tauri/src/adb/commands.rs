@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 use crate::adb::client::AdbClient;
 use crate::models::{AdbExecutionResult, PackageInfo};
 
@@ -7,13 +8,11 @@ pub struct AdbCommands;
 impl AdbCommands {
     /// List all installed packages with details
     pub async fn list_packages(client: &AdbClient, serial: &str) -> Result<Vec<PackageInfo>, String> {
-        // Run `pm list packages -u -f` to get all packages including uninstalled/disabled and apk paths
         let res = client.shell(serial, "pm list packages -u -f").await?;
         if !res.success {
             return Err(format!("Failed to list packages: {}", res.stderr));
         }
 
-        // Get disabled packages to flag them
         let disabled_res = client.shell(serial, "pm list packages -d").await.unwrap_or_default();
         let mut disabled_set = std::collections::HashSet::new();
         for line in disabled_res.stdout.lines() {
@@ -35,7 +34,6 @@ impl AdbCommands {
                         || apk_path.starts_with("/apex");
                     let is_enabled = !disabled_set.contains(pkg_name);
 
-                    // Generate human friendly app name from package id
                     let app_name = pkg_name.rsplit('.').next().map(|s| {
                         let mut chars = s.chars();
                         match chars.next() {
@@ -63,7 +61,55 @@ impl AdbCommands {
         Ok(packages)
     }
 
-    /// Safely uninstall package for user 0 (keeps app in /system, removes user data and disables it)
+    /// Install an APK package on device
+    pub async fn install_apk(client: &AdbClient, serial: &str, apk_path: &str) -> Result<AdbExecutionResult, String> {
+        client.execute(Some(serial), &["install", "-r", "-d", apk_path]).await
+    }
+
+    /// Extract / dump APK from device to local directory
+    pub async fn extract_apk(client: &AdbClient, serial: &str, package: &str, dest_folder: &str) -> Result<AdbExecutionResult, String> {
+        let path_res = client.shell(serial, &format!("pm path {}", package)).await?;
+        if !path_res.success || path_res.stdout.trim().is_empty() {
+            return Err(format!("Could not locate APK for package: {}", package));
+        }
+
+        // Example stdout: "package:/data/app/~~.../base.apk"
+        let remote_path = path_res.stdout.lines().next()
+            .and_then(|l| l.strip_prefix("package:"))
+            .unwrap_or("")
+            .trim();
+
+        if remote_path.is_empty() {
+            return Err("Invalid APK remote path".to_string());
+        }
+
+        let local_file = PathBuf::from(dest_folder).join(format!("{}.apk", package));
+        client.execute(Some(serial), &["pull", remote_path, local_file.to_str().unwrap_or(package)]).await
+    }
+
+    /// Change screen resolution (wm size <width>x<height>)
+    pub async fn set_screen_resolution(client: &AdbClient, serial: &str, width: u32, height: u32) -> Result<AdbExecutionResult, String> {
+        let cmd = format!("wm size {}x{}", width, height);
+        client.shell(serial, &cmd).await
+    }
+
+    /// Reset screen resolution to physical default
+    pub async fn reset_screen_resolution(client: &AdbClient, serial: &str) -> Result<AdbExecutionResult, String> {
+        client.shell(serial, "wm size reset").await
+    }
+
+    /// Change screen density (wm density <dpi>)
+    pub async fn set_screen_density(client: &AdbClient, serial: &str, density: u32) -> Result<AdbExecutionResult, String> {
+        let cmd = format!("wm density {}", density);
+        client.shell(serial, &cmd).await
+    }
+
+    /// Reset screen density to physical default
+    pub async fn reset_screen_density(client: &AdbClient, serial: &str) -> Result<AdbExecutionResult, String> {
+        client.shell(serial, "wm density reset").await
+    }
+
+    /// Safely uninstall package for user 0
     pub async fn uninstall_package_user0(client: &AdbClient, serial: &str, package: &str) -> Result<AdbExecutionResult, String> {
         let cmd = format!("pm uninstall -k --user 0 {}", package);
         client.shell(serial, &cmd).await
@@ -93,14 +139,14 @@ impl AdbCommands {
         client.shell(serial, &cmd).await
     }
 
-    /// Get Android system setting (global, system, secure)
+    /// Get Android system setting
     pub async fn get_setting(client: &AdbClient, serial: &str, namespace: &str, key: &str) -> Result<String, String> {
         let cmd = format!("settings get {} {}", namespace, key);
         let res = client.shell(serial, &cmd).await?;
         Ok(res.stdout.trim().to_string())
     }
 
-    /// Set Android system setting (global, system, secure)
+    /// Set Android system setting
     pub async fn put_setting(client: &AdbClient, serial: &str, namespace: &str, key: &str, value: &str) -> Result<AdbExecutionResult, String> {
         let cmd = format!("settings put {} {} {}", namespace, key, value);
         client.shell(serial, &cmd).await
@@ -112,7 +158,7 @@ impl AdbCommands {
         client.shell(serial, &cmd).await
     }
 
-    /// Dump key-value pairs for a settings namespace (global, system, secure)
+    /// Dump key-value pairs for a settings namespace
     pub async fn dump_settings(client: &AdbClient, serial: &str, namespace: &str) -> Result<HashMap<String, String>, String> {
         let cmd = format!("settings list {}", namespace);
         let res = client.shell(serial, &cmd).await.unwrap_or_default();
@@ -127,7 +173,7 @@ impl AdbCommands {
         Ok(map)
     }
 
-    /// Device power controls (normal, recovery, bootloader)
+    /// Device power controls
     pub async fn reboot(client: &AdbClient, serial: &str, mode: Option<&str>) -> Result<AdbExecutionResult, String> {
         let mut args = vec!["reboot"];
         if let Some(m) = mode {
@@ -136,23 +182,5 @@ impl AdbCommands {
             }
         }
         client.execute(Some(serial), &args).await
-    }
-
-    /// Take screenshot and return base64 png
-    pub async fn capture_screenshot(client: &AdbClient, serial: &str) -> Result<String, String> {
-        // Capture to /sdcard/screencap.png, pull base64 or stream
-        let cap_res = client.shell(serial, "screencap -p /sdcard/nexus_screencap.png").await?;
-        if !cap_res.success {
-            return Err(format!("Screencap failed: {}", cap_res.stderr));
-        }
-
-        let b64_res = client.shell(serial, "base64 /sdcard/nexus_screencap.png").await?;
-        let _ = client.shell(serial, "rm -f /sdcard/nexus_screencap.png").await;
-
-        if b64_res.success {
-            Ok(b64_res.stdout.replace('\n', "").replace('\r', ""))
-        } else {
-            Err("Failed to encode screenshot".to_string())
-        }
     }
 }
