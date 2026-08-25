@@ -254,13 +254,9 @@ impl RuleEngine {
         settings_secure: &HashMap<String, String>,
         packages: &[PackageInfo],
     ) {
-        let disabled_or_missing_packages: HashSet<String> = packages
+        let enabled_packages: HashSet<String> = packages
             .iter()
-            .filter(|p| !p.is_enabled)
-            .map(|p| p.package_name.clone())
-            .collect();
-        let all_installed_packages: HashSet<String> = packages
-            .iter()
+            .filter(|p| p.is_enabled)
             .map(|p| p.package_name.clone())
             .collect();
 
@@ -298,6 +294,9 @@ impl RuleEngine {
                                     let mode = settings_global.get("private_dns_mode").map(|s| s.as_str()).unwrap_or("");
                                     mode == "hostname" && val.contains("adguard")
                                 },
+                                "gen_wifi_scan_throttling_disable" => {
+                                    val == "0"
+                                },
                                 "gen_aggressive_doze" => val.contains("inactive_to"),
                                 "gen_force_peak_refresh_rate" => {
                                     let current_hz = val.parse::<f32>().unwrap_or(0.0);
@@ -314,14 +313,10 @@ impl RuleEngine {
                     }
                 }
             } else if let Some(ref pkgs) = rule.packages {
-                let mut all_disabled = true;
-                for pkg in pkgs {
-                    if all_installed_packages.contains(pkg) && !disabled_or_missing_packages.contains(pkg) {
-                        all_disabled = false;
-                        break;
-                    }
-                }
-                rule.is_applied = Some(all_disabled);
+                // If any of the bloatware packages in the rule are still actively enabled on device, it's not applied.
+                // If all target packages are disabled or completely uninstalled/absent, the rule is APPLIED!
+                let has_any_enabled = pkgs.iter().any(|pkg| enabled_packages.contains(pkg));
+                rule.is_applied = Some(!has_any_enabled);
             }
         }
     }

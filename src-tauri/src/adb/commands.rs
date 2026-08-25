@@ -13,11 +13,15 @@ impl AdbCommands {
             return Err(format!("Failed to list packages: {}", res.stderr));
         }
 
-        let disabled_res = client.shell(serial, "pm list packages -d").await.unwrap_or_default();
-        let mut disabled_set = std::collections::HashSet::new();
-        for line in disabled_res.stdout.lines() {
+        // Accurately determine currently enabled packages for user 0
+        let mut enabled_res = client.shell(serial, "pm list packages -e --user 0").await.unwrap_or_default();
+        if !enabled_res.success || enabled_res.stdout.trim().is_empty() {
+            enabled_res = client.shell(serial, "pm list packages -e").await.unwrap_or_default();
+        }
+        let mut enabled_set = std::collections::HashSet::new();
+        for line in enabled_res.stdout.lines() {
             if let Some(pkg) = line.trim().strip_prefix("package:") {
-                disabled_set.insert(pkg.trim().to_string());
+                enabled_set.insert(pkg.trim().to_string());
             }
         }
 
@@ -32,7 +36,8 @@ impl AdbCommands {
                         || apk_path.starts_with("/system_ext") 
                         || apk_path.starts_with("/vendor") 
                         || apk_path.starts_with("/apex");
-                    let is_enabled = !disabled_set.contains(pkg_name);
+                    
+                    let is_enabled = enabled_set.contains(pkg_name);
 
                     let app_name = pkg_name.rsplit('.').next().map(|s| {
                         let mut chars = s.chars();
