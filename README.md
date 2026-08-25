@@ -134,11 +134,25 @@ graph TD
 
 ---
 
-## 🚀 Quick Start
+## 📥 Download & Installation (For End Users)
+
+No development tools, Node.js, or Rust are required to use NexusTweak!
+
+1. Go to the latest **[GitHub Releases](https://github.com/burakzdgn/NexusTweak/releases)**.
+2. Download the installer for your operating system:
+   - **Windows:** `NexusTweak-Setup.exe` (or `.msi`)
+   - **macOS:** `NexusTweak.dmg`
+   - **Linux:** `NexusTweak.deb` / `NexusTweak.AppImage`
+3. Launch the application and connect your Android device via USB (with **USB Debugging** enabled).
+4. *Tip:* If ADB is not installed on your computer, NexusTweak features a **1-Click Google ADB Downloader** that automatically configures platform-tools for you.
+
+---
+
+## 🛠️ Running from Source (For Developers)
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher)
-- [Rust & Cargo](https://www.rust-lang.org/tools/install) (Required for compiling Tauri v2 desktop app)
+- [Rust & Cargo](https://www.rust-lang.org/tools/install)
 - Android device with **Developer Options** and **USB Debugging** enabled.
 
 ### 1. Clone the Repository
@@ -147,21 +161,15 @@ git clone https://github.com/burakzdgn/NexusTweak.git
 cd NexusTweak
 ```
 
-### 2. Install Dependencies
+### 2. Quick 1-Click Launch (Windows)
+Double-click `run.bat` or execute in PowerShell:
+```cmd
+run.bat
+```
+
+### 3. Or Run Manually
 ```bash
 npm install
-```
-
-### 3. Run in Development Mode
-
-#### Web Preview Mode
-```bash
-npm run dev
-```
-> Open `http://localhost:1420` in your web browser.
-
-#### Desktop Application Mode (Tauri + Rust Backend)
-```bash
 npm run tauri dev
 ```
 

@@ -113,6 +113,53 @@ Tüm işlemler öncesinde **otomatik anlık görüntü (snapshot)** alınır, de
 
 ---
 
+## 📥 İndirme ve Kurulum (Son Kullanıcılar İçin)
+
+NexusTweak'i kullanmak için Node.js, Rust veya herhangi bir geliştirici aracı kurmanıza **gerek yoktur**!
+
+1. En son **[GitHub Releases](https://github.com/burakzdgn/NexusTweak/releases)** sayfasına gidin.
+2. İşletim sisteminize uygun hazır paketi indirin:
+   - **Windows:** `NexusTweak-Setup.exe` (veya `.msi`)
+   - **macOS:** `NexusTweak.dmg`
+   - **Linux:** `NexusTweak.deb` / `NexusTweak.AppImage`
+3. İndirdiğiniz dosyayı çalıştırın ve Android cihazınızı USB ile bağlayın (**USB Hata Ayıklama** açık olmalıdır).
+4. *İpucu:* Bilgisayarınızda ADB kurulu değilse, NexusTweak'in içindeki **1-Tıkla Otomatik Google ADB İndirici** gerekli araçları arka planda otomatik olarak yapılandırır.
+
+---
+
+## 🛠️ Kaynak Koddan Çalıştırma (Geliştiriciler İçin)
+
+### Gereksinimler
+- [Node.js](https://nodejs.org/) (v18 veya üstü)
+- [Rust & Cargo](https://www.rust-lang.org/tools/install)
+- Android Cihazda **Geliştirici Seçenekleri** ve **USB Hata Ayıklama** açık olmalıdır.
+
+### 1. Depoyu Klonlayın
+```bash
+git clone https://github.com/burakzdgn/NexusTweak.git
+cd NexusTweak
+```
+
+### 2. Windows İçin Tek Tıkla Başlatma
+`run.bat` dosyasına çift tıklayın veya PowerShell'de çalıştırın:
+```cmd
+run.bat
+```
+
+### 3. Manuel Çalıştırma
+```bash
+npm install
+npm run tauri dev
+```
+
+### 4. Üretim Paketi (Kurulum Dosyası) Oluşturma
+```bash
+npm run tauri build
+```
+> Çıktılar `src-tauri/target/release/bundle/` klasörü altına oluşturulur (`.msi`, `.exe`, `.dmg`, `.deb`).
+
+---
+
 ## 📜 Üçüncü Taraf Lisans Atıfları
 
 - **[scrcpy](https://github.com/Genymobile/scrcpy)** — Ekran yansıtma ve kontrol motoru, [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Telif Hakkı Genymobile / Romain Vimont) altında lisanslanmıştır.
