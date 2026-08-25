@@ -229,7 +229,14 @@ async fn reset_screen_density(serial: String, state: State<'_, AppState>) -> Res
 async fn get_applicable_rules(serial: String, state: State<'_, AppState>) -> Result<Vec<TweakRule>, String> {
     let client = state.adb_client.lock().await.clone();
     let device = DeviceScanner::scan_device_details(&client, &serial).await?;
-    Ok(state.rule_engine.get_applicable_rules(&device))
+    let settings_global = AdbCommands::dump_settings(&client, &serial, "global").await.unwrap_or_default();
+    let settings_system = AdbCommands::dump_settings(&client, &serial, "system").await.unwrap_or_default();
+    let settings_secure = AdbCommands::dump_settings(&client, &serial, "secure").await.unwrap_or_default();
+    let packages = AdbCommands::list_packages(&client, &serial).await.unwrap_or_default();
+
+    let mut rules = state.rule_engine.get_applicable_rules(&device);
+    state.rule_engine.populate_rule_states(&mut rules, &settings_global, &settings_system, &settings_secure, &packages);
+    Ok(rules)
 }
 
 #[tauri::command]
@@ -403,9 +410,11 @@ async fn calculate_health_score(
 ) -> Result<HealthScore, String> {
     let client = state.adb_client.lock().await.clone();
     let device = DeviceScanner::scan_device_details(&client, &serial).await?;
+    let settings_global = AdbCommands::dump_settings(&client, &serial, "global").await.unwrap_or_default();
+    let settings_system = AdbCommands::dump_settings(&client, &serial, "system").await.unwrap_or_default();
     let mut packages = AdbCommands::list_packages(&client, &serial).await.unwrap_or_default();
     state.rule_engine.classify_packages(&mut packages);
-    Ok(state.rule_engine.calculate_health_score(&device, &packages, &applied_tweaks))
+    Ok(state.rule_engine.calculate_dynamic_health_score(&device, &packages, &settings_global, &settings_system, &applied_tweaks))
 }
 
 #[tauri::command]

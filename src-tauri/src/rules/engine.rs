@@ -245,6 +245,62 @@ impl RuleEngine {
         matched_rules
     }
 
+    /// Populate live is_applied and current_value on each rule by inspecting current device state
+    pub fn populate_rule_states(
+        &self,
+        rules: &mut [TweakRule],
+        settings_global: &HashMap<String, String>,
+        settings_system: &HashMap<String, String>,
+        settings_secure: &HashMap<String, String>,
+        packages: &[PackageInfo],
+    ) {
+        let disabled_or_missing_packages: HashSet<String> = packages
+            .iter()
+            .filter(|p| !p.is_enabled)
+            .map(|p| p.package_name.clone())
+            .collect();
+        let all_installed_packages: HashSet<String> = packages
+            .iter()
+            .map(|p| p.package_name.clone())
+            .collect();
+
+        for rule in rules.iter_mut() {
+            if let Some(ref verify_cmd) = rule.verify_command {
+                let parts: Vec<&str> = verify_cmd.split_whitespace().collect();
+                if parts.len() >= 4 && parts[0] == "settings" && parts[1] == "get" {
+                    let ns = parts[2];
+                    let key = parts[3];
+
+                    let current = match ns {
+                        "global" => settings_global.get(key),
+                        "system" => settings_system.get(key),
+                        "secure" => settings_secure.get(key),
+                        _ => None,
+                    };
+
+                    if let Some(val) = current {
+                        rule.current_value = Some(val.clone());
+                        if let Some(ref exp) = rule.expected_value {
+                            rule.is_applied = Some(val == exp || (exp.contains("inactive_to") && val.contains("inactive_to")));
+                        }
+                    } else {
+                        rule.current_value = Some("null".to_string());
+                        rule.is_applied = Some(false);
+                    }
+                }
+            } else if let Some(ref pkgs) = rule.packages {
+                let mut all_disabled = true;
+                for pkg in pkgs {
+                    if all_installed_packages.contains(pkg) && !disabled_or_missing_packages.contains(pkg) {
+                        all_disabled = false;
+                        break;
+                    }
+                }
+                rule.is_applied = Some(all_disabled);
+            }
+        }
+    }
+
     /// Enhance packages with whitelist flags and bloatware categories
     pub fn classify_packages(&self, packages: &mut [PackageInfo]) {
         for pkg in packages.iter_mut() {
@@ -277,11 +333,13 @@ impl RuleEngine {
         }
     }
 
-    /// Compute dynamic device health and optimization score (0-100)
-    pub fn calculate_health_score(
+    /// Compute dynamic device health score and highly contextual recommendations based on live state
+    pub fn calculate_dynamic_health_score(
         &self,
         device: &DeviceInfo,
         packages: &[PackageInfo],
+        settings_global: &HashMap<String, String>,
+        settings_system: &HashMap<String, String>,
         applied_tweaks: &[String],
     ) -> HealthScore {
         let mut battery_score: u32 = 70;
@@ -289,22 +347,31 @@ impl RuleEngine {
         let mut animation_score: u32 = 60;
         let mut recommendations = Vec::new();
 
-        // 1. Check animation tweaks
-        if applied_tweaks.contains(&"gen_anim_scale_fast".to_string()) || applied_tweaks.contains(&"gen_anim_scale_off".to_string()) {
+        // 1. Live Check Animation Scales
+        let anim_val = settings_global.get("window_animation_scale").map(|s| s.as_str()).unwrap_or("1.0");
+        let is_anim_fast = anim_val == "0.5" || anim_val == "0.0" || anim_val == "0"
+            || applied_tweaks.contains(&"gen_anim_scale_fast".to_string())
+            || applied_tweaks.contains(&"gen_anim_scale_off".to_string());
+
+        if is_anim_fast {
             animation_score = 100;
         } else {
-            recommendations.push("Speed up UI animations to 0.5x for snappier performance".to_string());
+            recommendations.push("Speed up UI animations to 0.5x for snappier UI response".to_string());
         }
 
-        // 2. Check refresh rate dynamically based on device display capability
+        // 2. Live Check Display Panel & Refresh Rate Capability
         let max_supported_hz = device.display.supported_refresh_rates
             .iter()
             .cloned()
             .fold(60.0f32, f32::max);
 
         if max_supported_hz > 60.0 {
-            let is_high_hz_active = device.display.refresh_rate_hz >= (max_supported_hz - 2.0);
-            if is_high_hz_active || applied_tweaks.contains(&"gen_force_peak_refresh_rate".to_string()) {
+            let min_hz_setting = settings_system.get("min_refresh_rate").and_then(|v| v.parse::<f32>().ok()).unwrap_or(0.0);
+            let is_high_hz_active = device.display.refresh_rate_hz >= (max_supported_hz - 2.0)
+                || min_hz_setting >= (max_supported_hz - 2.0)
+                || applied_tweaks.contains(&"gen_force_peak_refresh_rate".to_string());
+
+            if is_high_hz_active {
                 animation_score = (animation_score + 100) / 2;
             } else {
                 recommendations.push(format!(
@@ -314,26 +381,77 @@ impl RuleEngine {
             }
         }
 
-        // 3. Check private DNS
-        if applied_tweaks.contains(&"gen_private_dns_cloudflare".to_string()) || applied_tweaks.contains(&"gen_private_dns_adguard".to_string()) {
+        // 3. Live Check Private DNS
+        let dns_mode = settings_global.get("private_dns_mode").map(|s| s.as_str()).unwrap_or("");
+        let dns_spec = settings_global.get("private_dns_specifier").map(|s| s.as_str()).unwrap_or("");
+        let is_dns_active = (dns_mode == "hostname" && !dns_spec.is_empty())
+            || applied_tweaks.contains(&"gen_private_dns_cloudflare".to_string())
+            || applied_tweaks.contains(&"gen_private_dns_adguard".to_string());
+
+        if is_dns_active {
             privacy_score = 100;
         } else {
             recommendations.push("Enable AdGuard or Cloudflare Private DNS to block trackers & ads".to_string());
         }
 
-        // 4. Check Doze & Battery
-        if applied_tweaks.contains(&"gen_aggressive_doze".to_string()) {
+        // 4. Live Check Doze / Battery Constants
+        let doze_constants = settings_global.get("device_idle_constants").map(|s| s.as_str()).unwrap_or("");
+        let is_doze_aggressive = doze_constants.contains("inactive_to")
+            || applied_tweaks.contains(&"gen_aggressive_doze".to_string());
+
+        if is_doze_aggressive {
             battery_score = 95;
         } else {
             recommendations.push("Enable Aggressive Doze for enhanced standby battery savings".to_string());
         }
 
-        // 5. Check Bloatware count
-        let detected_bloat = packages.iter().filter(|p| p.bloat_category.is_some() && p.is_enabled).count();
+        // 5. Live Check RAM & UI Blurs (for 4GB devices on Android 12+)
+        if device.total_ram_mb <= 4500 && device.sdk_version >= 31 {
+            let blurs_disabled = settings_global.get("disable_window_blurs").map(|s| s.as_str()).unwrap_or("0") == "1"
+                || applied_tweaks.contains(&"gen_disable_window_blurs".to_string());
+            if !blurs_disabled {
+                recommendations.push("Disable real-time UI blur effects to free GPU and RAM memory".to_string());
+            }
+        }
+
+        // 6. Live Check Bloatware & OEM Services
+        let mut detected_bloat = 0;
+        let mut has_joyose = false;
+        let mut has_msa = false;
+        let mut has_carousel = false;
+        let mut has_gos = false;
+
+        for p in packages {
+            if p.bloat_category.is_some() && p.is_enabled {
+                detected_bloat += 1;
+                if p.package_name == "com.xiaomi.joyose" {
+                    has_joyose = true;
+                } else if p.package_name == "com.miui.msa.global" || p.package_name == "com.miui.analytics" {
+                    has_msa = true;
+                } else if p.package_name == "com.miui.android.fashiongallery" {
+                    has_carousel = true;
+                } else if p.package_name == "com.samsung.android.game.gos" {
+                    has_gos = true;
+                }
+            }
+        }
+
+        if has_msa {
+            recommendations.push("Disable Xiaomi MSA ad daemon and analytics trackers".to_string());
+        }
+        if has_joyose {
+            recommendations.push("Disable Joyose background thermal throttler to uncap gaming FPS".to_string());
+        }
+        if has_carousel {
+            recommendations.push("Disable Wallpaper Carousel lockscreen sponsored news feed".to_string());
+        }
+        if has_gos {
+            recommendations.push("Disable Samsung GOS throttling in games".to_string());
+        }
+
         let debloat_score = if detected_bloat == 0 {
             100
         } else {
-            recommendations.push(format!("Debloat {} unnecessary OEM background packages", detected_bloat));
             100u32.saturating_sub((detected_bloat as u32) * 8).max(40)
         };
 
@@ -347,6 +465,17 @@ impl RuleEngine {
             debloat_score,
             recommendations,
         }
+    }
+
+    pub fn calculate_health_score(
+        &self,
+        device: &DeviceInfo,
+        packages: &[PackageInfo],
+        applied_tweaks: &[String],
+    ) -> HealthScore {
+        let dummy_global = HashMap::new();
+        let dummy_system = HashMap::new();
+        self.calculate_dynamic_health_score(device, packages, &dummy_global, &dummy_system, applied_tweaks)
     }
 
     pub fn is_package_whitelisted(&self, package: &str) -> bool {
