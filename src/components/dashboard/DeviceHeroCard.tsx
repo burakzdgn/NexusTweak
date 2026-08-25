@@ -5,20 +5,22 @@ import {
   Shield,
   Layers,
   Fingerprint,
+  RefreshCw,
   Calendar,
   Sparkles,
 } from 'lucide-react';
 import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
 import { DeviceInfo } from '../../types/device';
 import { useLanguageStore } from '../../stores/useLanguageStore';
+import { useDeviceStore } from '../../stores/useDeviceStore';
 
 interface DeviceHeroCardProps {
   device: DeviceInfo;
 }
 
 export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
+  const { reanalyzeDevice, isReanalyzing } = useDeviceStore();
 
   const getOemGradient = () => {
     const oem = device.manufacturer.toLowerCase();
@@ -51,8 +53,22 @@ export const DeviceHeroCard: React.FC<DeviceHeroCardProps> = ({ device }) => {
             </div>
           </div>
 
-          {/* Quick Specs Badges */}
+          {/* Quick Specs Badges & Re-Analyze Action */}
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => reanalyzeDevice()}
+              disabled={isReanalyzing}
+              className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 text-xs font-semibold transition-all ${
+                isReanalyzing
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 cursor-wait'
+                  : 'bg-[#141724] border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/60 shadow-sm'
+              }`}
+              title={language === 'tr' ? 'Cihaz ayarlarını ve optimizasyonları yeniden analiz et' : 'Re-analyze device settings and live optimizations'}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isReanalyzing ? 'animate-spin text-cyan-300' : 'text-cyan-400'}`} />
+              <span>{isReanalyzing ? (language === 'tr' ? 'Analiz Ediliyor...' : 'Analyzing...') : (language === 'tr' ? 'Yeniden Analiz Et' : 'Re-analyze Device')}</span>
+            </button>
+
             <div className="px-3 py-1.5 rounded-lg bg-[#141724] border border-[#202538] flex items-center gap-2">
               <Layers className="w-3.5 h-3.5 text-cyan-400" />
               <span className="text-xs font-semibold text-slate-200">

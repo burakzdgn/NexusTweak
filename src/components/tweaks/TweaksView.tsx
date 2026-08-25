@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Search, ShieldCheck, CheckSquare, Square, Zap } from 'lucide-react';
+import { Search, ShieldCheck, CheckSquare, Square, Zap, RefreshCw } from 'lucide-react';
 import { useTweaksStore } from '../../stores/useTweaksStore';
 import { useDeviceStore } from '../../stores/useDeviceStore';
 import { useLanguageStore } from '../../stores/useLanguageStore';
@@ -84,9 +84,9 @@ export const TweaksView: React.FC = () => {
           </p>
         </div>
 
-        {/* Search Bar & Auto-Backup Switch */}
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:w-64">
+        {/* Search Bar, Re-Scan & Auto-Backup Switch */}
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-56">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -96,6 +96,20 @@ export const TweaksView: React.FC = () => {
               className="w-full pl-9 pr-4 py-2 bg-[#121524] border border-[#202538] rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
             />
           </div>
+
+          <button
+            onClick={() => useDeviceStore.getState().reanalyzeDevice()}
+            disabled={useDeviceStore.getState().isReanalyzing}
+            className={`px-3 py-2 rounded-xl border flex items-center gap-1.5 text-xs font-semibold transition-all shrink-0 ${
+              useDeviceStore.getState().isReanalyzing
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 cursor-wait'
+                : 'bg-[#121524] border-[#202538] text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40'
+            }`}
+            title={language === 'tr' ? 'Cihaz kurallarını ve optimizasyon durumlarını yeniden tara' : 'Re-scan device rules and optimization states'}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${useDeviceStore.getState().isReanalyzing ? 'animate-spin text-cyan-400' : 'text-cyan-400'}`} />
+            <span>{useDeviceStore.getState().isReanalyzing ? (language === 'tr' ? 'Taranıyor...' : 'Scanning...') : (language === 'tr' ? 'Yeniden Tara' : 'Re-scan')}</span>
+          </button>
 
           <div className="flex items-center gap-2 px-3 py-2 bg-[#121524] border border-[#202538] rounded-xl shrink-0">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />

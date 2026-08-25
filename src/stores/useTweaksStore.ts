@@ -3,6 +3,8 @@ import { TweakRule, TweakCategory, RiskLevel } from '../types/tweaks';
 import { AdbBridge } from '../services/adbBridge';
 import { useDeviceStore } from './useDeviceStore';
 import { useLogStore } from './useLogStore';
+import { useLanguageStore } from './useLanguageStore';
+import { translateTweakRule } from '../utils/tweakTranslator';
 
 export type TweakStatusFilter = 'all' | 'unapplied' | 'applied';
 
@@ -95,6 +97,10 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
     if (!activeDevice) return false;
 
     set({ isApplying: true });
+    const targetRule = get().rules.find((r) => r.id === ruleId);
+    const lang = useLanguageStore.getState().language;
+    const ruleTitle = targetRule ? translateTweakRule(targetRule, lang).name : ruleId;
+
     try {
       const deviceName = `${activeDevice.manufacturer} ${activeDevice.model}`;
       const results = await AdbBridge.applyTweak(
@@ -104,29 +110,38 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
         get().autoBackupEnabled
       );
 
-      results.forEach((r) => {
+      const hasError = results.some(
+        (r) => !r.success || r.stdout.includes('Exception') || r.stdout.includes('Error:')
+      );
+
+      if (!hasError) {
         useLogStore.getState().addLog(
-          r.success ? 'success' : 'error',
-          `Apply tweak: ${ruleId}`,
-          r.stdout || r.stderr
+          'success',
+          ruleTitle,
+          lang === 'tr' ? 'Optimizasyon başarıyla uygulandı.' : 'Optimization applied successfully.'
         );
-      });
+      } else {
+        const errRes = results.find((r) => !r.success || r.stdout.includes('Exception')) || results[0];
+        let msg = errRes.stdout || errRes.stderr;
+        if (msg.includes('Unknown package')) {
+          const match = msg.match(/Unknown package: ([^\s\r\n]+)/);
+          const pkg = match ? match[1] : '';
+          msg = lang === 'tr'
+            ? `Paket cihazınızda bulunamadı (Zaten kaldırılmış): ${pkg}`
+            : `Package not found on device (Already absent): ${pkg}`;
+        }
+        useLogStore.getState().addLog('error', `${ruleTitle} (Hata)`, msg);
+      }
 
-      set((state) => ({
-        rules: state.rules.map((r) => (r.id === ruleId ? { ...r, isApplied: true } : r)),
-        isApplying: false,
-      }));
-
-      const applied = get()
-        .rules.filter((r) => r.isApplied)
-        .map((r) => r.id);
-      useDeviceStore.getState().updateHealthScore(applied);
+      // Re-scan applicable rules and update live score
+      await get().fetchRulesForActiveDevice();
+      set({ isApplying: false });
       return true;
     } catch (err: unknown) {
       set({ isApplying: false });
       useLogStore.getState().addLog(
         'error',
-        `Failed to apply tweak ${ruleId}`,
+        `${ruleTitle} (Hata)`,
         err instanceof Error ? err.message : String(err)
       );
       return false;
@@ -138,32 +153,34 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
     if (!activeSerial) return false;
 
     set({ isApplying: true });
+    const targetRule = get().rules.find((r) => r.id === ruleId);
+    const lang = useLanguageStore.getState().language;
+    const ruleTitle = targetRule ? translateTweakRule(targetRule, lang).name : ruleId;
+
     try {
       const results = await AdbBridge.revertTweak(activeSerial, ruleId);
+      const hasError = results.some((r) => !r.success);
 
-      results.forEach((r) => {
+      if (!hasError) {
         useLogStore.getState().addLog(
-          r.success ? 'info' : 'error',
-          `Revert tweak: ${ruleId}`,
-          r.stdout || r.stderr
+          'info',
+          ruleTitle,
+          lang === 'tr' ? 'Optimizasyon geri alındı (Varsayılan değere dönüldü).' : 'Optimization reverted.'
         );
-      });
+      } else {
+        const errRes = results.find((r) => !r.success) || results[0];
+        useLogStore.getState().addLog('error', `${ruleTitle} (Geri Alma Hatası)`, errRes.stderr || errRes.stdout);
+      }
 
-      set((state) => ({
-        rules: state.rules.map((r) => (r.id === ruleId ? { ...r, isApplied: false } : r)),
-        isApplying: false,
-      }));
-
-      const applied = get()
-        .rules.filter((r) => r.isApplied)
-        .map((r) => r.id);
-      useDeviceStore.getState().updateHealthScore(applied);
+      // Re-scan applicable rules and update live score
+      await get().fetchRulesForActiveDevice();
+      set({ isApplying: false });
       return true;
     } catch (err: unknown) {
       set({ isApplying: false });
       useLogStore.getState().addLog(
         'error',
-        `Failed to revert tweak ${ruleId}`,
+        `${ruleTitle} (Geri Alma Hatası)`,
         err instanceof Error ? err.message : String(err)
       );
       return false;
@@ -171,51 +188,80 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
   },
 
   applySelectedBatch: async () => {
-    const { selectedRuleIds, autoBackupEnabled } = get();
+    const { rules, selectedRuleIds, autoBackupEnabled } = get();
     const activeDevice = useDeviceStore.getState().activeDevice;
     if (!activeDevice || selectedRuleIds.size === 0) return false;
 
     set({ isApplying: true });
-    const ids = Array.from(selectedRuleIds);
+    const selectedList = rules.filter((r) => selectedRuleIds.has(r.id));
     const deviceName = `${activeDevice.manufacturer} ${activeDevice.model}`;
+    const lang = useLanguageStore.getState().language;
 
-    try {
-      const results = await AdbBridge.applyBatchTweaks(
+    // 1. Take master snapshot before batch
+    if (autoBackupEnabled) {
+      await AdbBridge.createBackup(
         activeDevice.serial,
         deviceName,
-        ids,
-        autoBackupEnabled
+        `Auto-Backup before applying ${selectedList.length} tweaks`
       );
-
-      results.forEach((r) => {
-        useLogStore.getState().addLog(
-          r.success ? 'success' : 'error',
-          'Batch tweak execution',
-          r.stdout || r.stderr
-        );
-      });
-
-      set((state) => ({
-        rules: state.rules.map((r) =>
-          selectedRuleIds.has(r.id) ? { ...r, isApplied: true } : r
-        ),
-        selectedRuleIds: new Set(),
-        isApplying: false,
-      }));
-
-      const applied = get()
-        .rules.filter((r) => r.isApplied)
-        .map((r) => r.id);
-      useDeviceStore.getState().updateHealthScore(applied);
-      return true;
-    } catch (err: unknown) {
-      set({ isApplying: false });
-      useLogStore.getState().addLog(
-        'error',
-        'Batch apply failed',
-        err instanceof Error ? err.message : String(err)
-      );
-      return false;
     }
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const rule of selectedList) {
+      const translated = translateTweakRule(rule, lang);
+      try {
+        const results = await AdbBridge.applyTweak(activeDevice.serial, deviceName, rule.id, false);
+        const hasError = results.some(
+          (r) => !r.success || r.stdout.includes('Exception') || r.stdout.includes('Error:')
+        );
+
+        if (!hasError) {
+          successCount++;
+          useLogStore.getState().addLog(
+            'success',
+            translated.name,
+            lang === 'tr' ? 'Başarıyla uygulandı' : 'Successfully applied'
+          );
+        } else {
+          failedCount++;
+          const errRes = results.find((r) => !r.success || r.stdout.includes('Exception')) || results[0];
+          let msg = errRes.stdout || errRes.stderr;
+          if (msg.includes('Unknown package')) {
+            const match = msg.match(/Unknown package: ([^\s\r\n]+)/);
+            const pkg = match ? match[1] : '';
+            msg = lang === 'tr'
+              ? `Paket bu ROM sürümünde bulunamadı (Zaten kaldırılmış): ${pkg}`
+              : `Package not found on ROM (Already absent): ${pkg}`;
+          }
+          useLogStore.getState().addLog('error', `${translated.name} (Hata)`, msg);
+        }
+      } catch (err: unknown) {
+        failedCount++;
+        useLogStore.getState().addLog(
+          'error',
+          `${translated.name} (Hata)`,
+          err instanceof Error ? err.message : String(err)
+        );
+      }
+    }
+
+    // 2. Clear selection and stop loading
+    set({ selectedRuleIds: new Set(), isApplying: false });
+
+    // 3. Immediately re-scan live device state, rules, and health scores!
+    await get().fetchRulesForActiveDevice();
+    await useDeviceStore.getState().refreshActiveDevice();
+
+    useLogStore.getState().addLog(
+      failedCount === 0 ? 'success' : 'info',
+      lang === 'tr' ? `Toplu İşlem Tamamlandı (${successCount}/${selectedList.length})` : `Batch Completed (${successCount}/${selectedList.length})`,
+      lang === 'tr'
+        ? `${successCount} optimizasyon uygulandı, ${failedCount} kural hata/uyarı verdi.`
+        : `${successCount} tweaks applied, ${failedCount} failed.`
+    );
+
+    return true;
   },
 }));
