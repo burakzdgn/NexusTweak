@@ -118,7 +118,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       );
 
       set({ activeProfileId: profile.id, isApplying: false, selectedProfileForConfirm: null });
-      await useTweaksStore.getState().fetchRulesForActiveDevice();
+      await useDeviceStore.getState().syncDeviceState();
       return true;
     } catch (err: unknown) {
       set({ isApplying: false });

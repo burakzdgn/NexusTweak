@@ -97,7 +97,7 @@ export const useDebloatStore = create<DebloatState>((set, get) => ({
         forceOverride,
         true // Auto snapshot
       );
-      useLogStore.getState().addLog('success', `Debloated: ${pkg}`, res.stdout);
+      useLogStore.getState().addLog('success', `Debloat: ${pkg}`, res.stdout);
 
       set((state) => ({
         packages: state.packages.map((p) =>
@@ -105,6 +105,9 @@ export const useDebloatStore = create<DebloatState>((set, get) => ({
         ),
         isProcessing: false,
       }));
+
+      // Automatically re-evaluate device state, rules, and health score
+      await useDeviceStore.getState().syncDeviceState();
       return true;
     } catch (err: unknown) {
       set({ isProcessing: false });
@@ -132,6 +135,9 @@ export const useDebloatStore = create<DebloatState>((set, get) => ({
         ),
         isProcessing: false,
       }));
+
+      // Automatically re-evaluate device state, rules, and health score
+      await useDeviceStore.getState().syncDeviceState();
       return true;
     } catch (err: unknown) {
       set({ isProcessing: false });
@@ -180,6 +186,9 @@ export const useDebloatStore = create<DebloatState>((set, get) => ({
       selectedPackages: new Set(),
       isProcessing: false,
     }));
+
+    // Automatically re-evaluate device state, rules, and health score
+    await useDeviceStore.getState().syncDeviceState();
     return true;
   },
 }));

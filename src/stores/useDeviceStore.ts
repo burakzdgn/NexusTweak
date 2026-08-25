@@ -19,6 +19,7 @@ interface DeviceState {
   selectDevice: (serial: string) => Promise<void>;
   isReanalyzing: boolean;
   refreshActiveDevice: () => Promise<void>;
+  syncDeviceState: () => Promise<void>;
   reanalyzeDevice: () => Promise<void>;
   checkAdbInstalled: () => Promise<boolean>;
   downloadAndInstallAdb: () => Promise<boolean>;
@@ -128,20 +129,33 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     }
   },
 
+  syncDeviceState: async () => {
+    const { activeSerial } = get();
+    if (!activeSerial) return;
+    try {
+      // 1. Fetch updated device hardware metrics (display, battery, RAM, etc.)
+      const details = await AdbBridge.getDeviceDetails(activeSerial);
+      set({ activeDevice: details });
+
+      // 2. Fetch updated tweak rules and packages
+      const { fetchRulesForActiveDevice } = (await import('./useTweaksStore')).useTweaksStore.getState();
+      const { fetchPackages } = (await import('./useDebloatStore')).useDebloatStore.getState();
+      await Promise.all([
+        fetchRulesForActiveDevice(),
+        fetchPackages(),
+      ]);
+    } catch (err) {
+      console.error('syncDeviceState error:', err);
+    }
+  },
+
   reanalyzeDevice: async () => {
     const { activeSerial } = get();
     if (!activeSerial) return;
     set({ isReanalyzing: true });
     try {
-      const details = await AdbBridge.getDeviceDetails(activeSerial);
-      set({ activeDevice: details, isReanalyzing: false });
-      
-      // Refresh tweak rules and debloat packages
-      const { fetchRulesForActiveDevice } = await import('./useTweaksStore').then(m => m.useTweaksStore.getState());
-      const { fetchPackages } = await import('./useDebloatStore').then(m => m.useDebloatStore.getState());
-      await fetchRulesForActiveDevice();
-      await fetchPackages();
-
+      await get().syncDeviceState();
+      set({ isReanalyzing: false });
       useLogStore.getState().addLog(
         'success',
         'Cihaz Analizi Tamamlandı',

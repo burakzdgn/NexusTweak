@@ -85,6 +85,7 @@ export const useBackupStore = create<BackupState>((set, get) => ({
         );
       });
       set({ isRestoring: false, activeRollbackTarget: null });
+      await useDeviceStore.getState().syncDeviceState();
       return true;
     } catch (err: unknown) {
       set({ isRestoring: false });

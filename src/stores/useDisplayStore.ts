@@ -56,7 +56,7 @@ export const useDisplayStore = create<DisplayState>((set, get) => ({
 
       if (res.success) {
         useLogStore.getState().addLog('success', `Resolution updated to ${targetW}x${targetH}`, res.stdout);
-        await useDeviceStore.getState().refreshActiveDevice();
+        await useDeviceStore.getState().syncDeviceState();
       } else {
         useLogStore.getState().addLog('error', 'Resolution change failed', res.stderr);
       }
@@ -77,7 +77,7 @@ export const useDisplayStore = create<DisplayState>((set, get) => ({
     try {
       const res = await AdbBridge.resetScreenResolution(activeSerial);
       useLogStore.getState().addLog('info', 'Screen resolution reset to native default', res.stdout);
-      await useDeviceStore.getState().refreshActiveDevice();
+      await useDeviceStore.getState().syncDeviceState();
       set({ isApplying: false });
       return true;
     } catch (err: unknown) {
@@ -100,7 +100,7 @@ export const useDisplayStore = create<DisplayState>((set, get) => ({
 
       if (res.success) {
         useLogStore.getState().addLog('success', `DPI updated to ${targetD}`, res.stdout);
-        await useDeviceStore.getState().refreshActiveDevice();
+        await useDeviceStore.getState().syncDeviceState();
       } else {
         useLogStore.getState().addLog('error', 'Density change failed', res.stderr);
       }
@@ -121,7 +121,7 @@ export const useDisplayStore = create<DisplayState>((set, get) => ({
     try {
       const res = await AdbBridge.resetScreenDensity(activeSerial);
       useLogStore.getState().addLog('info', 'Screen density reset to native DPI', res.stdout);
-      await useDeviceStore.getState().refreshActiveDevice();
+      await useDeviceStore.getState().syncDeviceState();
       set({ isApplying: false });
       return true;
     } catch (err: unknown) {
