@@ -7,17 +7,41 @@ interface CommandPresetsProps {
 }
 
 export const CommandPresets: React.FC<CommandPresetsProps> = ({ onSelectCommand }) => {
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
 
   const presets = [
-    { label: 'Check Battery', cmd: 'dumpsys battery' },
-    { label: 'Screen Resolution', cmd: 'wm size' },
-    { label: 'Screen Density', cmd: 'wm density' },
-    { label: 'List Disabled Packages', cmd: 'pm list packages -d' },
-    { label: 'List Third Party Apps', cmd: 'pm list packages -3' },
-    { label: 'Global Animation Scales', cmd: 'settings get global window_animation_scale' },
-    { label: 'Display Refresh Rates', cmd: 'dumpsys display | grep -i refresh' },
-    { label: 'Device CPU Architecture', cmd: 'getprop ro.product.cpu.abi' },
+    {
+      label: language === 'tr' ? 'Batarya Durumu' : 'Check Battery',
+      cmd: 'dumpsys battery',
+    },
+    {
+      label: language === 'tr' ? 'Ekran Çözünürlüğü' : 'Screen Resolution',
+      cmd: 'wm size',
+    },
+    {
+      label: language === 'tr' ? 'Piksel Yoğunluğu (DPI)' : 'Screen Density',
+      cmd: 'wm density',
+    },
+    {
+      label: language === 'tr' ? 'Devre Dışı Paketler' : 'Disabled Packages',
+      cmd: 'pm list packages -d',
+    },
+    {
+      label: language === 'tr' ? 'Kullanıcı Uygulamaları' : 'Third Party Apps',
+      cmd: 'pm list packages -3',
+    },
+    {
+      label: language === 'tr' ? 'Animasyon Ölçeği' : 'Animation Scale',
+      cmd: 'settings get global window_animation_scale',
+    },
+    {
+      label: language === 'tr' ? 'Ekran Modları & FPS' : 'Display Modes & FPS',
+      cmd: 'dumpsys display | grep -E "DisplayDeviceInfo|supportedModes|modeId"',
+    },
+    {
+      label: language === 'tr' ? 'CPU / ABI Mimarisi' : 'CPU Architecture',
+      cmd: 'getprop ro.product.cpu.abi',
+    },
   ];
 
   return (

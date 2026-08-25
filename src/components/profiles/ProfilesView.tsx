@@ -185,14 +185,32 @@ export const ProfilesView: React.FC = () => {
 
                 {/* Overrides Preview */}
                 <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#1e2338]">
-                  {Object.entries(profile.settingsOverride).map(([k, v]) => (
-                    <span
-                      key={k}
-                      className="px-2 py-0.5 rounded-md bg-[#131525] border border-slate-800 text-[10px] text-slate-400 font-mono"
-                    >
-                      {k}: <strong className="text-slate-200">{v}</strong>
+                  {profile.id === 'gaming_ultra' && (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-300 font-mono">
+                      Refresh Rate: <strong>{Math.max(60, ...(activeDevice?.display.supported_refresh_rates || [60]))}Hz</strong>
                     </span>
-                  ))}
+                  )}
+                  {profile.id === 'battery_extreme' && (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-300 font-mono">
+                      Doze Mode: <strong>Aggressive Deep Sleep</strong>
+                    </span>
+                  )}
+                  {profile.id === 'privacy_hardened' && (
+                    <span className="px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/30 text-[10px] text-purple-300 font-mono">
+                      DNS: <strong>AdGuard DoT</strong>
+                    </span>
+                  )}
+                  {Object.entries(profile.settingsOverride).map(([k, v]) => {
+                    if (k.includes('refresh_rate') && profile.id === 'gaming_ultra') return null;
+                    return (
+                      <span
+                        key={k}
+                        className="px-2 py-0.5 rounded-md bg-[#131525] border border-slate-800 text-[10px] text-slate-400 font-mono"
+                      >
+                        {k}: <strong className="text-slate-200">{v}</strong>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
 

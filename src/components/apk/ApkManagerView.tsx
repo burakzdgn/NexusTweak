@@ -37,6 +37,7 @@ export const ApkManagerView: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extractSearch, setExtractSearch] = useState('');
+  const [appTypeFilter, setAppTypeFilter] = useState<'all' | 'user' | 'system'>('all');
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleFileDrop = (e: React.DragEvent) => {
@@ -60,14 +61,17 @@ export const ApkManagerView: React.FC = () => {
   };
 
   const filteredApps = useMemo(() => {
-    if (!extractSearch.trim()) return packages.slice(0, 15);
-    const q = extractSearch.toLowerCase();
-    return packages.filter(
-      (p) =>
+    return packages.filter((p) => {
+      if (appTypeFilter === 'user' && p.is_system) return false;
+      if (appTypeFilter === 'system' && !p.is_system) return false;
+      if (!extractSearch.trim()) return true;
+      const q = extractSearch.toLowerCase();
+      return (
         p.package_name.toLowerCase().includes(q) ||
         (p.app_name && p.app_name.toLowerCase().includes(q))
-    );
-  }, [packages, extractSearch]);
+      );
+    });
+  }, [packages, extractSearch, appTypeFilter]);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -218,28 +222,70 @@ export const ApkManagerView: React.FC = () => {
 
       {/* APK Extractor / Dumper Section */}
       <Card className="p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
               <Download className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">{t.extract_apk_title}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white">{t.extract_apk_title}</h3>
+                <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-mono">
+                  {filteredApps.length} / {packages.length}
+                </span>
+              </div>
               <p className="text-xs text-slate-400">
                 Dump raw base APKs to local <code className="text-cyan-300">extracted_apks/</code>
               </p>
             </div>
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder={t.search_apps_to_extract}
-              value={extractSearch}
-              onChange={(e) => setExtractSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-[#121524] border border-[#202538] rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
-            />
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            {/* Filter Tabs */}
+            <div className="flex items-center p-1 bg-[#121524] rounded-xl border border-[#202538]">
+              <button
+                onClick={() => setAppTypeFilter('all')}
+                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                  appTypeFilter === 'all'
+                    ? 'bg-purple-500/20 text-purple-300 font-bold'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Tümü ({packages.length})
+              </button>
+              <button
+                onClick={() => setAppTypeFilter('user')}
+                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                  appTypeFilter === 'user'
+                    ? 'bg-purple-500/20 text-purple-300 font-bold'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Kullanıcı ({packages.filter((p) => !p.is_system).length})
+              </button>
+              <button
+                onClick={() => setAppTypeFilter('system')}
+                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                  appTypeFilter === 'system'
+                    ? 'bg-purple-500/20 text-purple-300 font-bold'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Sistem ({packages.filter((p) => p.is_system).length})
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative flex-1 md:w-64">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder={t.search_apps_to_extract}
+                value={extractSearch}
+                onChange={(e) => setExtractSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 bg-[#121524] border border-[#202538] rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
           </div>
         </div>
 

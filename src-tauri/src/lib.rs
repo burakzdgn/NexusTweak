@@ -424,11 +424,20 @@ async fn run_custom_command(
     state: State<'_, AppState>,
 ) -> Result<AdbExecutionResult, String> {
     let client = state.adb_client.lock().await.clone();
-    if command.starts_with("shell ") {
-        client.shell(&serial, &command[6..]).await
+    let trimmed = command.trim();
+
+    if trimmed.starts_with("adb ") {
+        let rest = trimmed.strip_prefix("adb ").unwrap_or(trimmed).trim();
+        if rest.starts_with("shell ") {
+            client.shell(&serial, &rest[6..]).await
+        } else {
+            let args: Vec<&str> = rest.split_whitespace().collect();
+            client.execute(Some(&serial), &args).await
+        }
+    } else if trimmed.starts_with("shell ") {
+        client.shell(&serial, &trimmed[6..]).await
     } else {
-        let args: Vec<&str> = command.split_whitespace().collect();
-        client.execute(Some(&serial), &args).await
+        client.shell(&serial, trimmed).await
     }
 }
 

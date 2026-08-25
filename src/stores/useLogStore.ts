@@ -12,15 +12,7 @@ interface LogState {
 }
 
 export const useLogStore = create<LogState>((set) => ({
-  logs: [
-    {
-      id: 'init-1',
-      timestamp: new Date().toLocaleTimeString(),
-      type: 'info',
-      message: 'NexusTweak Core Engine initialized.',
-      details: 'Ready for device connection or simulation testing.',
-    },
-  ],
+  logs: [],
   isTerminalOpen: false,
 
   addLog: (type, message, details) => {

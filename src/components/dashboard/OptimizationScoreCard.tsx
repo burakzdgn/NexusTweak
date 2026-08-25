@@ -4,6 +4,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { HealthScore } from '../../types/device';
 import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translateRecommendation } from '../../utils/recommendationTranslator';
 
 interface OptimizationScoreCardProps {
   score: HealthScore | null;
@@ -14,7 +15,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
   score,
   onNavigateTweaks,
 }) => {
-  const t = useLanguageStore((s) => s.t);
+  const { t, language } = useLanguageStore();
   const totalScore = score?.total_score || 72;
 
   const getScoreColor = (val: number) => {
@@ -136,7 +137,7 @@ export const OptimizationScoreCard: React.FC<OptimizationScoreCardProps> = ({
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 group-hover:scale-125 transition-transform" />
                   <span className="text-xs text-slate-300 group-hover:text-white truncate">
-                    {rec}
+                    {translateRecommendation(rec, language)}
                   </span>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 shrink-0 transition-colors ml-2" />
