@@ -79,9 +79,14 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       set({ devices, isScanning: false });
 
       const { activeSerial } = get();
+      const lastSerial = localStorage.getItem('nexustweak_last_serial');
+
+      // If no active device or active device disconnected
       if (!activeSerial || !devices.some((d) => d.serial === activeSerial)) {
         if (devices.length > 0) {
-          await get().selectDevice(devices[0].serial);
+          // Prefer last connected device if available, otherwise first device
+          const target = devices.find((d) => d.serial === lastSerial) || devices[0];
+          await get().selectDevice(target.serial);
         } else {
           set({ activeSerial: null, activeDevice: null, healthScore: null });
         }
@@ -97,6 +102,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   selectDevice: async (serial: string) => {
     set({ activeSerial: serial, isLoading: true, error: null });
     try {
+      localStorage.setItem('nexustweak_last_serial', serial);
       const details = await AdbBridge.getDeviceDetails(serial);
       set({ activeDevice: details, isLoading: false });
       await get().updateHealthScore([]);
