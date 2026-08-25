@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
-use crate::models::{DeviceInfo, HealthScore, PackageInfo, RiskLevel, TweakRule, WhitelistEntry};
+use crate::models::{DeviceInfo, HealthScore, PackageInfo, RiskLevel, TweakRule};
 
+#[derive(Debug, Clone)]
 pub struct RuleEngine {
     rules: Vec<TweakRule>,
     whitelist: HashSet<String>,
@@ -231,7 +232,6 @@ impl RuleEngine {
         let mut battery_score: u32 = 70;
         let mut privacy_score: u32 = 65;
         let mut animation_score: u32 = 60;
-        let mut debloat_score: u32 = 65;
         let mut recommendations = Vec::new();
 
         // 1. Check animation tweaks
@@ -266,12 +266,12 @@ impl RuleEngine {
 
         // 5. Check Bloatware count
         let detected_bloat = packages.iter().filter(|p| p.bloat_category.is_some() && p.is_enabled).count();
-        if detected_bloat == 0 {
-            debloat_score = 100;
+        let debloat_score = if detected_bloat == 0 {
+            100
         } else {
-            debloat_score = 100u32.saturating_sub((detected_bloat as u32) * 8).max(40);
             recommendations.push(format!("Debloat {} unnecessary OEM background packages", detected_bloat));
-        }
+            100u32.saturating_sub((detected_bloat as u32) * 8).max(40)
+        };
 
         let total_score = (battery_score + privacy_score + animation_score + debloat_score) / 4;
 

@@ -4,7 +4,7 @@ pub mod rules;
 
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::State;
 
 use crate::adb::{AdbClient, AdbCommands, DeviceScanner, ScrcpyManager, ScrcpyOptions};
@@ -15,14 +15,14 @@ use crate::rules::{BackupManager, RuleEngine};
 
 pub struct AppState {
     pub adb_client: Mutex<AdbClient>,
-    pub rule_engine: Mutex<RuleEngine>,
-    pub backup_manager: Mutex<BackupManager>,
+    pub rule_engine: RuleEngine,
+    pub backup_manager: BackupManager,
     pub scrcpy_process: Mutex<Option<tokio::process::Child>>,
 }
 
 #[tauri::command]
 async fn check_adb_status(state: State<'_, AppState>) -> Result<bool, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     Ok(client.check_adb_available().await)
 }
 
@@ -93,7 +93,7 @@ async fn download_install_adb(state: State<'_, AppState>) -> Result<String, Stri
 
     if installed_bin.exists() {
         let path_str = installed_bin.to_string_lossy().to_string();
-        let mut client = state.adb_client.lock().unwrap();
+        let mut client = state.adb_client.lock().await;
         client.set_custom_path(Some(path_str.clone()));
         Ok(path_str)
     } else {
@@ -119,19 +119,19 @@ async fn start_screen_mirror(
 ) -> Result<bool, String> {
     // Terminate any currently running instance first
     {
-        let mut proc_guard = state.scrcpy_process.lock().unwrap();
+        let mut proc_guard = state.scrcpy_process.lock().await;
         if let Some(mut child) = proc_guard.take() {
             let _ = child.kill().await;
         }
     }
 
     let adb_path = {
-        let client = state.adb_client.lock().unwrap();
+        let client = state.adb_client.lock().await;
         client.get_adb_path()
     };
 
     let child = ScrcpyManager::spawn_mirror(&serial, &adb_path, &options)?;
-    let mut proc_guard = state.scrcpy_process.lock().unwrap();
+    let mut proc_guard = state.scrcpy_process.lock().await;
     *proc_guard = Some(child);
 
     Ok(true)
@@ -139,7 +139,7 @@ async fn start_screen_mirror(
 
 #[tauri::command]
 async fn stop_screen_mirror(state: State<'_, AppState>) -> Result<bool, String> {
-    let mut proc_guard = state.scrcpy_process.lock().unwrap();
+    let mut proc_guard = state.scrcpy_process.lock().await;
     if let Some(mut child) = proc_guard.take() {
         let _ = child.kill().await;
         Ok(true)
@@ -150,7 +150,7 @@ async fn stop_screen_mirror(state: State<'_, AppState>) -> Result<bool, String> 
 
 #[tauri::command]
 async fn is_screen_mirror_running(state: State<'_, AppState>) -> Result<bool, String> {
-    let mut proc_guard = state.scrcpy_process.lock().unwrap();
+    let mut proc_guard = state.scrcpy_process.lock().await;
     if let Some(ref mut child) = *proc_guard {
         match child.try_wait() {
             Ok(None) => Ok(true), // Process is still active
@@ -166,35 +166,33 @@ async fn is_screen_mirror_running(state: State<'_, AppState>) -> Result<bool, St
 
 #[tauri::command]
 async fn get_connected_devices(state: State<'_, AppState>) -> Result<Vec<AdbDevice>, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     DeviceScanner::list_devices(&client).await
 }
 
 #[tauri::command]
 async fn get_device_details(serial: String, state: State<'_, AppState>) -> Result<DeviceInfo, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     DeviceScanner::scan_device_details(&client, &serial).await
 }
 
 #[tauri::command]
 async fn get_installed_packages(serial: String, state: State<'_, AppState>) -> Result<Vec<PackageInfo>, String> {
-    let client = state.adb_client.lock().unwrap().clone();
-    let rule_engine = state.rule_engine.lock().unwrap();
-
+    let client = state.adb_client.lock().await.clone();
     let mut packages = AdbCommands::list_packages(&client, &serial).await?;
-    rule_engine.classify_packages(&mut packages);
+    state.rule_engine.classify_packages(&mut packages);
     Ok(packages)
 }
 
 #[tauri::command]
 async fn install_apk(serial: String, apk_path: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     AdbCommands::install_apk(&client, &serial, &apk_path).await
 }
 
 #[tauri::command]
 async fn extract_apk(serial: String, package_name: String, dest_folder: Option<String>, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     let dest = dest_folder.unwrap_or_else(|| {
         let default_dir = PathBuf::from("extracted_apks");
         let _ = fs::create_dir_all(&default_dir);
@@ -205,34 +203,33 @@ async fn extract_apk(serial: String, package_name: String, dest_folder: Option<S
 
 #[tauri::command]
 async fn set_screen_resolution(serial: String, width: u32, height: u32, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     AdbCommands::set_screen_resolution(&client, &serial, width, height).await
 }
 
 #[tauri::command]
 async fn reset_screen_resolution(serial: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     AdbCommands::reset_screen_resolution(&client, &serial).await
 }
 
 #[tauri::command]
 async fn set_screen_density(serial: String, density: u32, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     AdbCommands::set_screen_density(&client, &serial, density).await
 }
 
 #[tauri::command]
 async fn reset_screen_density(serial: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     AdbCommands::reset_screen_density(&client, &serial).await
 }
 
 #[tauri::command]
 async fn get_applicable_rules(serial: String, state: State<'_, AppState>) -> Result<Vec<TweakRule>, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     let device = DeviceScanner::scan_device_details(&client, &serial).await?;
-    let rule_engine = state.rule_engine.lock().unwrap();
-    Ok(rule_engine.get_applicable_rules(&device))
+    Ok(state.rule_engine.get_applicable_rules(&device))
 }
 
 #[tauri::command]
@@ -243,12 +240,11 @@ async fn apply_tweak(
     auto_backup: bool,
     state: State<'_, AppState>,
 ) -> Result<Vec<AdbExecutionResult>, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
 
     if auto_backup {
-        let backup_mgr = state.backup_manager.lock().unwrap();
         let dname = device_name.unwrap_or_else(|| serial.clone());
-        let _ = backup_mgr.create_snapshot(
+        let _ = state.backup_manager.create_snapshot(
             &client,
             &serial,
             &dname,
@@ -257,9 +253,8 @@ async fn apply_tweak(
         ).await;
     }
 
-    let rule_engine = state.rule_engine.lock().unwrap();
     let device = DeviceScanner::scan_device_details(&client, &serial).await?;
-    let rules = rule_engine.get_applicable_rules(&device);
+    let rules = state.rule_engine.get_applicable_rules(&device);
 
     let rule = rules.iter().find(|r| r.id == rule_id)
         .ok_or_else(|| format!("Rule {} not found for this device", rule_id))?;
@@ -279,10 +274,9 @@ async fn revert_tweak(
     rule_id: String,
     state: State<'_, AppState>,
 ) -> Result<Vec<AdbExecutionResult>, String> {
-    let client = state.adb_client.lock().unwrap().clone();
-    let rule_engine = state.rule_engine.lock().unwrap();
+    let client = state.adb_client.lock().await.clone();
     let device = DeviceScanner::scan_device_details(&client, &serial).await?;
-    let rules = rule_engine.get_applicable_rules(&device);
+    let rules = state.rule_engine.get_applicable_rules(&device);
 
     let rule = rules.iter().find(|r| r.id == rule_id)
         .ok_or_else(|| format!("Rule {} not found", rule_id))?;
@@ -304,12 +298,11 @@ async fn apply_batch_tweaks(
     auto_backup: bool,
     state: State<'_, AppState>,
 ) -> Result<Vec<AdbExecutionResult>, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
 
     if auto_backup {
-        let backup_mgr = state.backup_manager.lock().unwrap();
         let dname = device_name.unwrap_or_else(|| serial.clone());
-        let _ = backup_mgr.create_snapshot(
+        let _ = state.backup_manager.create_snapshot(
             &client,
             &serial,
             &dname,
@@ -337,17 +330,15 @@ async fn debloat_package(
     auto_backup: bool,
     state: State<'_, AppState>,
 ) -> Result<AdbExecutionResult, String> {
-    let rule_engine = state.rule_engine.lock().unwrap();
-    if rule_engine.is_package_whitelisted(&package_name) && !force_override {
+    if state.rule_engine.is_package_whitelisted(&package_name) && !force_override {
         return Err(format!("SECURITY PREVENT: Package '{}' is a critical OS component in whitelist!", package_name));
     }
 
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
 
     if auto_backup {
-        let backup_mgr = state.backup_manager.lock().unwrap();
         let dname = device_name.unwrap_or_else(|| serial.clone());
-        let _ = backup_mgr.create_snapshot(
+        let _ = state.backup_manager.create_snapshot(
             &client,
             &serial,
             &dname,
@@ -365,7 +356,7 @@ async fn restore_package(
     package_name: String,
     state: State<'_, AppState>,
 ) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     let _ = AdbCommands::restore_package_user0(&client, &serial, &package_name).await;
     AdbCommands::enable_package(&client, &serial, &package_name).await
 }
@@ -378,9 +369,8 @@ async fn create_backup(
     applied_tweaks: Vec<String>,
     state: State<'_, AppState>,
 ) -> Result<BackupSnapshot, String> {
-    let client = state.adb_client.lock().unwrap().clone();
-    let backup_mgr = state.backup_manager.lock().unwrap();
-    backup_mgr.create_snapshot(&client, &serial, &device_name, &note, applied_tweaks).await
+    let client = state.adb_client.lock().await.clone();
+    state.backup_manager.create_snapshot(&client, &serial, &device_name, &note, applied_tweaks).await
 }
 
 #[tauri::command]
@@ -388,8 +378,7 @@ async fn list_backups(
     serial: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<Vec<BackupSnapshot>, String> {
-    let backup_mgr = state.backup_manager.lock().unwrap();
-    Ok(backup_mgr.list_backups(serial.as_deref()))
+    Ok(state.backup_manager.list_backups(serial.as_deref()))
 }
 
 #[tauri::command]
@@ -397,15 +386,13 @@ async fn restore_backup(
     snapshot_id: String,
     state: State<'_, AppState>,
 ) -> Result<Vec<AdbExecutionResult>, String> {
-    let client = state.adb_client.lock().unwrap().clone();
-    let backup_mgr = state.backup_manager.lock().unwrap();
-    backup_mgr.restore_snapshot(&client, &snapshot_id).await
+    let client = state.adb_client.lock().await.clone();
+    state.backup_manager.restore_snapshot(&client, &snapshot_id).await
 }
 
 #[tauri::command]
 async fn delete_backup(snapshot_id: String, state: State<'_, AppState>) -> Result<(), String> {
-    let backup_mgr = state.backup_manager.lock().unwrap();
-    backup_mgr.delete_backup(&snapshot_id)
+    state.backup_manager.delete_backup(&snapshot_id)
 }
 
 #[tauri::command]
@@ -414,12 +401,11 @@ async fn calculate_health_score(
     applied_tweaks: Vec<String>,
     state: State<'_, AppState>,
 ) -> Result<HealthScore, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     let device = DeviceScanner::scan_device_details(&client, &serial).await?;
-    let rule_engine = state.rule_engine.lock().unwrap();
     let mut packages = AdbCommands::list_packages(&client, &serial).await.unwrap_or_default();
-    rule_engine.classify_packages(&mut packages);
-    Ok(rule_engine.calculate_health_score(&device, &packages, &applied_tweaks))
+    state.rule_engine.classify_packages(&mut packages);
+    Ok(state.rule_engine.calculate_health_score(&device, &packages, &applied_tweaks))
 }
 
 #[tauri::command]
@@ -428,7 +414,7 @@ async fn run_custom_command(
     command: String,
     state: State<'_, AppState>,
 ) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     if command.starts_with("shell ") {
         client.shell(&serial, &command[6..]).await
     } else {
@@ -439,19 +425,20 @@ async fn run_custom_command(
 
 #[tauri::command]
 async fn reboot_device(serial: String, mode: Option<String>, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     AdbCommands::reboot(&client, &serial, mode.as_deref()).await
 }
 
 #[tauri::command]
+#[allow(non_snake_case)]
 async fn connect_wifi_device(ipPort: String, state: State<'_, AppState>) -> Result<AdbExecutionResult, String> {
-    let client = state.adb_client.lock().unwrap().clone();
+    let client = state.adb_client.lock().await.clone();
     client.connect_wifi(&ipPort).await
 }
 
 #[tauri::command]
 async fn set_custom_adb_path(path: Option<String>, state: State<'_, AppState>) -> Result<String, String> {
-    let mut client = state.adb_client.lock().unwrap();
+    let mut client = state.adb_client.lock().await;
     client.set_custom_path(path);
     Ok(client.get_adb_path())
 }
@@ -461,8 +448,8 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .manage(AppState {
             adb_client: Mutex::new(AdbClient::new(None)),
-            rule_engine: Mutex::new(RuleEngine::new()),
-            backup_manager: Mutex::new(BackupManager::new()),
+            rule_engine: RuleEngine::new(),
+            backup_manager: BackupManager::new(),
             scrcpy_process: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![

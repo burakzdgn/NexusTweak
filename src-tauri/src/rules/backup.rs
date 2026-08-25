@@ -1,10 +1,11 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use chrono::Utc;
 use crate::adb::client::AdbClient;
 use crate::adb::commands::AdbCommands;
 use crate::models::{AdbExecutionResult, BackupSnapshot};
 
+#[derive(Debug, Clone)]
 pub struct BackupManager {
     backup_dir: PathBuf,
 }
