@@ -17,6 +17,9 @@ src-tauri/binaries/adb
 # Local Backup Data
 device_backups/
 
+# Local Showcase Media
+showcase_media/
+
 # Logs & Environment
 npm-debug.log*
 yarn-debug.log*

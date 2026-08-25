@@ -16,6 +16,7 @@ const MOCK_DEVICE: DeviceInfo = {
   model: 'Redmi Note 11',
   brand: 'Redmi',
   device_codename: 'spes',
+  product_name: 'spes',
   android_version: '13',
   sdk_version: 33,
   build_id: 'TKQ1.221114.001',
@@ -274,7 +275,7 @@ export class AdbBridge {
 
   public static async getDevices(): Promise<AdbDevice[]> {
     if (!isTauriEnvironment()) {
-      return [{ serial: 'fa4fe52d', state: 'device', model: 'Redmi Note 11 (spes)', product: 'spes' }];
+      return [{ serial: 'fa4fe52d', state: 'device', model: 'Redmi Note 11 (spes)', product: 'spes', device: 'spes', transport_id: '1' }];
     }
     try {
       return await this.invoke<AdbDevice[]>('get_connected_devices');

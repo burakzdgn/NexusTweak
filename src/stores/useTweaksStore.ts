@@ -8,6 +8,28 @@ import { translateTweakRule } from '../utils/tweakTranslator';
 
 export type TweakStatusFilter = 'all' | 'unapplied' | 'applied';
 
+function sanitizeErrorMessage(rawMsg: string, lang: 'tr' | 'en'): string {
+  let msg = rawMsg;
+  if (msg.includes('WRITE_SECURE_SETTINGS')) {
+    return lang === 'tr'
+      ? 'Xiaomi/MIUI Güvenlik İzni Gerekli: Bu ayarı uygulayabilmek için telefonunuzun Ayarlar > Geliştirici Seçenekleri menüsünden "USB Hata Ayıklama (Güvenlik Ayarları)" seçeneğini açmanız gerekmektedir.'
+      : 'Xiaomi/MIUI Security Permission Required: Please enable "USB Debugging (Security Settings)" in your phone\'s Developer Options.';
+  }
+  if (msg.includes('Cannot disable system packages') || msg.includes('SecurityException')) {
+    return lang === 'tr'
+      ? 'Xiaomi/MIUI Paket Kısıtlaması: Sistem paketlerini devre dışı bırakabilmek için telefonunuzun Ayarlar > Geliştirici Seçenekleri menüsünden "USB Hata Ayıklama (Güvenlik Ayarları)" seçeneğini açmanız gerekmektedir.'
+      : 'Xiaomi/MIUI Package Restriction: Please enable "USB Debugging (Security Settings)" in your phone\'s Developer Options.';
+  }
+  if (msg.includes('Unknown package')) {
+    const match = msg.match(/Unknown package: ([^\s\r\n]+)/);
+    const pkg = match ? match[1] : '';
+    return lang === 'tr'
+      ? `Paket bu ROM sürümünde bulunamadı (Zaten kaldırılmış): ${pkg}`
+      : `Package not found on ROM (Already absent): ${pkg}`;
+  }
+  return msg;
+}
+
 interface TweaksState {
   rules: TweakRule[];
   selectedRuleIds: Set<string>;
@@ -122,14 +144,8 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
         );
       } else {
         const errRes = results.find((r) => !r.success || r.stdout.includes('Exception')) || results[0];
-        let msg = errRes.stdout || errRes.stderr;
-        if (msg.includes('Unknown package')) {
-          const match = msg.match(/Unknown package: ([^\s\r\n]+)/);
-          const pkg = match ? match[1] : '';
-          msg = lang === 'tr'
-            ? `Paket cihazınızda bulunamadı (Zaten kaldırılmış): ${pkg}`
-            : `Package not found on device (Already absent): ${pkg}`;
-        }
+        const rawMsg = errRes.stdout || errRes.stderr;
+        const msg = sanitizeErrorMessage(rawMsg, lang);
         useLogStore.getState().addLog('error', `${ruleTitle} (Hata)`, msg);
       }
 
@@ -227,14 +243,8 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
         } else {
           failedCount++;
           const errRes = results.find((r) => !r.success || r.stdout.includes('Exception')) || results[0];
-          let msg = errRes.stdout || errRes.stderr;
-          if (msg.includes('Unknown package')) {
-            const match = msg.match(/Unknown package: ([^\s\r\n]+)/);
-            const pkg = match ? match[1] : '';
-            msg = lang === 'tr'
-              ? `Paket bu ROM sürümünde bulunamadı (Zaten kaldırılmış): ${pkg}`
-              : `Package not found on ROM (Already absent): ${pkg}`;
-          }
+          const rawMsg = errRes.stdout || errRes.stderr;
+          const msg = sanitizeErrorMessage(rawMsg, lang);
           useLogStore.getState().addLog('error', `${translated.name} (Hata)`, msg);
         }
       } catch (err: unknown) {
