@@ -1,16 +1,38 @@
-name: 'Release NexusTweak'
+name: 'Continuous Release & Cleanup'
 
 on:
   push:
+    branches:
+      - master
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
+  # 1. Clean up old workflow runs (Keeps only the last 5 runs to save storage/quota)
+  cleanup-old-runs:
+    name: Cleanup Old Action Logs
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 5
+
+  # 2. Build and release desktop executables for every commit / tag
   release:
+    name: Build & Publish Release (${{ matrix.platform }})
+    needs: cleanup-old-runs
     permissions:
       contents: write
     strategy:
@@ -47,13 +69,13 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci || npm install
 
-      - name: Build Tauri Desktop Application
+      - name: Build Tauri Desktop Application & Publish
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'NexusTweak ${{ github.ref_name }}'
+          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
+          releaseName: ${{ startsWith(github.ref, 'refs/tags/v') && format('NexusTweak {0}', github.ref_name) || 'NexusTweak (Latest Build)' }}
           releaseBody: 'Automated release build for NexusTweak. Download the installer for your platform below.'
           releaseDraft: false
           prerelease: false
