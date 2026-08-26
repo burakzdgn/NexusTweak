@@ -56,6 +56,10 @@ export function translateTweakRule(rule: TweakRule, lang: 'tr' | 'en'): Translat
       name: 'MIUI Sistem Reklamları (MSA) Servisi',
       description: 'MIUI/HyperOS sistem reklam motorunu ve telemetri izleme arka plan ajanını tamamen devre dışı bırakır.',
     },
+    xiaomi_mi_browser_debloat: {
+      name: 'Mi Tarayıcı (Mi Browser) Kaldırma',
+      description: 'Arama çubuğu reklamları, gizlilik telemetrisi ve bildirim spamları içeren önceden yüklü Mi Tarayıcıyı kaldırır.',
+    },
     xiaomi_joyose_throttling_disable: {
       name: 'Joyose Performans Kısıtlayıcı',
       description: 'Oyunlarda ve ağır uygulamalarda kare hızını (FPS) zorla düşüren Xiaomi Joyose termal kısıtlama servisini durdurur.',

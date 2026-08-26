@@ -142,6 +142,18 @@ export const TWEAK_DETAILS: Record<'tr' | 'en', Record<string, TweakDetailInfo>>
       considerations: 'Google Play Store birincil mağazanız olarak sorunsuz çalışmaya devam eder.',
       reversibility: 'İstendiğinde yeniden etkinleştirilebilir.',
     },
+    xiaomi_mi_browser_debloat: {
+      title: 'Mi Tarayıcı (Mi Browser) Kaldırma',
+      summary: 'Arama çubuğu reklamları, gizlilik telemetrisi ve bildirim spamları içeren önceden yüklü Mi Tarayıcıyı kaldırır.',
+      howItWorks: '`com.mi.globalbrowser` ve `com.android.browser` paketlerini kullanıcı (User 0) seviyesinde kaldırır.',
+      benefits: [
+        'Chrome, Brave, Firefox gibi alternatif tarayıcılara tam uyum sağlar.',
+        'Arama çubuğunda ve bildirimlerde beliren Xiaomi sponsorlu öneriler ve reklamlar son bulur.',
+        'Arka plan internet ve veri tüketimi engellenir.',
+      ],
+      considerations: 'Web sayfalarını açmak için Chrome, Brave veya Firefox gibi başka bir tarayıcının yüklü olduğundan emin olun.',
+      reversibility: 'İstediğiniz zaman tek tıkla geri yüklenebilir.',
+    },
     xiaomi_wallpaper_carousel_debloat: {
       title: 'Duvar Kağıdı Döngüsü (Kilit Ekranı Reklamları)',
       summary: 'Kilit ekranında beliren haberleri, dinamik reklamları ve veri tüketen görsel akışını devre dışı bırakır.',
@@ -383,6 +395,18 @@ export const TWEAK_DETAILS: Record<'tr' | 'en', Record<string, TweakDetailInfo>>
       ],
       considerations: 'Google Play Store continues to work flawlessly as primary store.',
       reversibility: 'Can be re-enabled at any time.',
+    },
+    xiaomi_mi_browser_debloat: {
+      title: 'Mi Browser Debloat',
+      summary: 'Removes pre-installed Xiaomi Mi Browser loaded with search bar ads, tracking telemetry, and news notifications.',
+      howItWorks: 'Uninstalls `com.mi.globalbrowser` and `com.android.browser` for user 0.',
+      benefits: [
+        'Eliminates sponsored recommendation cards and push notifications.',
+        'Improves privacy by cutting Xiaomi browser telemetry.',
+        'Saves background memory and mobile bandwidth.',
+      ],
+      considerations: 'Ensure you have another web browser installed (e.g., Google Chrome, Firefox, Brave).',
+      reversibility: 'Can be reinstalled and enabled with one click.',
     },
     xiaomi_wallpaper_carousel_debloat: {
       title: 'Wallpaper Carousel (Lockscreen Ads)',

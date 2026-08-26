@@ -28,6 +28,30 @@
     "tags": ["xiaomi", "miui", "ads", "privacy"]
   },
   {
+    "id": "xiaomi_mi_browser_debloat",
+    "name": "Mi Browser (Mint & Global Browser)",
+    "description": "Removes pre-installed Xiaomi Mi Browser loaded with search bar ads, tracking telemetry, and news feed notifications.",
+    "category": "privacy",
+    "risk": "Safe",
+    "targetOem": "xiaomi",
+    "minSdk": 24,
+    "packages": [
+      "com.mi.globalbrowser",
+      "com.android.browser"
+    ],
+    "applyCommands": [
+      "pm uninstall -k --user 0 com.mi.globalbrowser",
+      "pm uninstall -k --user 0 com.android.browser"
+    ],
+    "revertCommands": [
+      "pm install-existing --user 0 com.mi.globalbrowser",
+      "pm install-existing --user 0 com.android.browser",
+      "pm enable com.mi.globalbrowser",
+      "pm enable com.android.browser"
+    ],
+    "tags": ["xiaomi", "browser", "privacy", "debloat"]
+  },
+  {
     "id": "xiaomi_joyose_throttling_disable",
     "name": "Joyose Performance Throttler",
     "description": "Disables Xiaomi Joyose background thermal throttler that aggressively caps frame rates in games and heavy tasks.",

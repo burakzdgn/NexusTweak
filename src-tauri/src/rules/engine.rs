@@ -118,6 +118,50 @@ impl RuleEngine {
             "com.miui.android.fashiongallery".into(),
             ("Wallpaper Carousel".into(), "Lockscreen wallpaper ad provider".into(), RiskLevel::Safe)
         );
+        self.bloat_definitions.insert(
+            "com.mi.globalbrowser".into(),
+            ("Mi Browser (Global)".into(), "Xiaomi pre-installed web browser with promotional feeds & search bar ads".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.android.browser".into(),
+            ("Mi Browser / Stock Browser".into(), "MIUI default stock browser application".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.mi.global.bbs".into(),
+            ("Xiaomi Community".into(), "Xiaomi forums and community application".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.miui.hybrid".into(),
+            ("Quick Apps (Hybrid)".into(), "Xiaomi Instant app engine with tracking and push notifications".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.miui.hybrid.accessory".into(),
+            ("Quick Apps Accessory".into(), "Quick Apps background helper service".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.miui.bugreport".into(),
+            ("Mi Bug Report".into(), "Automated crash and diagnostics reporting service".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.miui.miservice".into(),
+            ("Services & Feedback".into(), "Xiaomi customer feedback and telemetry agent".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.miui.cleanmaster".into(),
+            ("Cleaner (Clean Master)".into(), "Cheetah Mobile / Clean Master telemetry integration".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.xiaomi.payment".into(),
+            ("Mi Pay / Payment Framework".into(), "Xiaomi integrated payment stub".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.mipay.wallet.id".into(),
+            ("Mi Wallet".into(), "Xiaomi regional wallet and payment app".into(), RiskLevel::Safe)
+        );
+        self.bloat_definitions.insert(
+            "com.mipay.wallet.in".into(),
+            ("Mi Pay Wallet".into(), "Xiaomi regional wallet and payment app".into(), RiskLevel::Safe)
+        );
 
         // Samsung / OneUI bloat definitions
         self.bloat_definitions.insert(
