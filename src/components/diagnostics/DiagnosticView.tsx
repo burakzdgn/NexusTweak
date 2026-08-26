@@ -431,6 +431,43 @@ export const DiagnosticView: React.FC = () => {
             </div>
           </div>
 
+          {/* 2.5 Quick Pro-Tip for High Load Average */}
+          {report.is_load_critical && (
+            <div className="p-4.5 rounded-2xl bg-gradient-to-r from-amber-950/30 via-[#12141c] to-indigo-950/30 border border-amber-500/40 shadow-lg flex items-start space-x-3.5">
+              <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div className="space-y-1 text-xs leading-relaxed">
+                <p className="font-bold text-sm text-white flex items-center space-x-2">
+                  <span>
+                    {lang === 'tr'
+                      ? '⚡ Yüksek İşlemci Yükü (Load Average) Neden Hemen Düşmez ve Nasıl Çözülür?'
+                      : '⚡ Why Does Load Average Stay High & How to Fix It?'}
+                  </span>
+                </p>
+                <p className="text-slate-300">
+                  {lang === 'tr'
+                    ? 'Android/Linux sistemlerinde Load Average yalnızca CPU kullanımını değil; yavaş depolamadan (eMMC) dosya bekleyen (I/O Wait) iş parçacıklarını da sayar.'
+                    : 'On Android/Linux, Load Average counts both active CPU threads and I/O Wait threads blocked on storage.'}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 text-slate-300">
+                  <div className="bg-black/30 p-2.5 rounded-lg border border-white/5">
+                    <strong className="text-amber-300">1. Bellek Uzantısı (Sanal RAM):</strong>{' '}
+                    {lang === 'tr'
+                      ? 'Telefonunuzun Ayarlar > Ek Ayarlar > Bellek Uzantısı menüsüne giderek Sanal RAM\'i KAPATIN. eMMC yongasının sürekli swap yazmasını engelleyerek yükü anında yarı yarıya düşürür.'
+                      : 'Go to Settings > Additional Settings > Memory Extension and turn it OFF to stop swap I/O thrashing.'}
+                  </div>
+                  <div className="bg-black/30 p-2.5 rounded-lg border border-white/5">
+                    <strong className="text-cyan-300">2. Yeniden Başlatma Sonrası 5 Dakika:</strong>{' '}
+                    {lang === 'tr'
+                      ? 'Cihaz yeniden açıldığında Google Play ve Medya Tarayıcı ilk 3-5 dakika disk taraması yapar; yükün oturması için birkaç dakika bekleyin.'
+                      : 'MediaScanner and Play Store scan storage for 3-5 mins right after boot before stabilizing.'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 3. "🚨 Neden Yavaş? (Tespit Edilen Temel Sorunlar)" Section */}
           <div className="bg-[#12141c]/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
             <div className="flex items-center space-x-3">
@@ -544,6 +581,8 @@ export const DiagnosticView: React.FC = () => {
                   return (
                     <div
                       key={proc.package_name}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => togglePackageSelection(proc.package_name)}
                       className={clsx(
                         'flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer select-none',
@@ -553,12 +592,16 @@ export const DiagnosticView: React.FC = () => {
                       )}
                     >
                       <div className="flex items-center space-x-3 min-w-0 pr-2">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}} // Handled by container onClick
-                          className="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500 pointer-events-none"
-                        />
+                        <div
+                          className={clsx(
+                            'w-4.5 h-4.5 rounded flex items-center justify-center border transition-all shrink-0',
+                            isChecked
+                              ? 'bg-indigo-600 border-indigo-500 text-white'
+                              : 'bg-slate-900 border-slate-700 text-transparent'
+                          )}
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        </div>
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-white truncate">
                             {proc.app_name}
@@ -613,7 +656,9 @@ export const DiagnosticView: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <label
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setRebootEnabled(!rebootEnabled)}
                 className={clsx(
                   'flex items-center space-x-3 p-3.5 rounded-xl border transition-all cursor-pointer select-none',
@@ -622,12 +667,16 @@ export const DiagnosticView: React.FC = () => {
                     : 'bg-[#181b26]/50 border-slate-800 hover:border-slate-700'
                 )}
               >
-                <input
-                  type="checkbox"
-                  checked={rebootEnabled}
-                  onChange={() => {}}
-                  className="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-700 focus:ring-indigo-500 pointer-events-none"
-                />
+                <div
+                  className={clsx(
+                    'w-5 h-5 rounded flex items-center justify-center border transition-all shrink-0',
+                    rebootEnabled
+                      ? 'bg-indigo-600 border-indigo-500 text-white'
+                      : 'bg-slate-900 border-slate-700 text-transparent'
+                  )}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </div>
                 <div>
                   <p className="text-sm font-semibold text-white flex items-center space-x-1.5">
                     <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
@@ -643,7 +692,7 @@ export const DiagnosticView: React.FC = () => {
                       : 'Resets system_server buffers and fragmentation after long uptime.'}
                   </p>
                 </div>
-              </label>
+              </div>
 
               <div className="p-3.5 rounded-xl bg-[#181b26]/50 border border-slate-800 flex items-center justify-between">
                 <div>

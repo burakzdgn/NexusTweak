@@ -151,6 +151,22 @@ impl DiagnosticEngine {
         let ps_res = client.shell(serial, "ps -A -o USER,PID,NAME").await.unwrap_or_default();
         let running_processes_str = ps_res.stdout.to_lowercase();
 
+        let mut enabled_packages_user0 = std::collections::HashSet::new();
+        let enabled_res = client.shell(serial, "pm list packages -e --user 0").await.unwrap_or_default();
+        for line in enabled_res.stdout.lines() {
+            if let Some(p) = line.trim().strip_prefix("package:") {
+                enabled_packages_user0.insert(p.trim().to_string());
+            }
+        }
+        if enabled_packages_user0.is_empty() {
+            let enabled_fallback = client.shell(serial, "pm list packages -e").await.unwrap_or_default();
+            for line in enabled_fallback.stdout.lines() {
+                if let Some(p) = line.trim().strip_prefix("package:") {
+                    enabled_packages_user0.insert(p.trim().to_string());
+                }
+            }
+        }
+
         let target_bloat_list = [
             ("com.miui.daemon", "MIUI Daemon Telemetry", "Xiaomi arka plan sistem ve kullanım telemetrisi toplayıcısı"),
             ("com.miui.powerkeeper", "Xiaomi PowerKeeper", "Arka planda gereksiz CPU tüketen agresif güç yöneticisi"),
@@ -175,9 +191,7 @@ impl DiagnosticEngine {
 
         for (pkg, name, desc) in target_bloat_list {
             let is_running = running_processes_str.contains(&pkg.to_lowercase());
-            // Check if package is installed
-            let pkg_check = client.shell(serial, &format!("pm list packages -e {}", pkg)).await.unwrap_or_default();
-            let is_enabled = pkg_check.stdout.contains(pkg);
+            let is_enabled = enabled_packages_user0.contains(pkg);
 
             if is_enabled {
                 detected_bloat_processes.push(DetectedBloatProcess {
@@ -341,10 +355,15 @@ impl DiagnosticEngine {
             )
             .await?;
 
-        // 2. Disable/Debloat problem packages
+        // 2. Disable/Debloat problem packages permanently for user 0
         let mut disabled = Vec::new();
         for pkg in &packages_to_disable {
-            let _ = AdbCommands::disable_package(client, serial, pkg).await;
+            // Force stop
+            let _ = client.shell(serial, &format!("am force-stop {}", pkg)).await;
+            // Disable
+            let _ = client.shell(serial, &format!("pm disable-user --user 0 {}", pkg)).await;
+            // Uninstall for user 0 (prevents autostart on reboot)
+            let _ = AdbCommands::uninstall_package_user0(client, serial, pkg).await;
             disabled.push(pkg.clone());
         }
 
