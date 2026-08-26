@@ -126,14 +126,22 @@ impl AdbCommands {
         client.shell(serial, &cmd).await
     }
 
-    /// Disable package for user 0
+    /// Disable package for user 0 (with automatic fallback to uninstall for user 0 on Xiaomi/MIUI/HyperOS)
     pub async fn disable_package(client: &AdbClient, serial: &str, package: &str) -> Result<AdbExecutionResult, String> {
         let cmd = format!("pm disable-user --user 0 {}", package);
-        client.shell(serial, &cmd).await
+        let res = client.shell(serial, &cmd).await?;
+        if !res.success || res.stdout.contains("SecurityException") || res.stdout.contains("Cannot disable system packages") || res.stdout.contains("Permission Denial") {
+            let fallback_res = Self::uninstall_package_user0(client, serial, package).await?;
+            if fallback_res.success || fallback_res.stdout.contains("Success") {
+                return Ok(fallback_res);
+            }
+        }
+        Ok(res)
     }
 
     /// Re-enable package
     pub async fn enable_package(client: &AdbClient, serial: &str, package: &str) -> Result<AdbExecutionResult, String> {
+        let _ = Self::restore_package_user0(client, serial, package).await;
         let cmd = format!("pm enable {}", package);
         client.shell(serial, &cmd).await
     }

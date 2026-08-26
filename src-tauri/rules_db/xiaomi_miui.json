@@ -13,11 +13,14 @@
       "com.miui.hybrid"
     ],
     "applyCommands": [
-      "pm disable-user --user 0 com.miui.msa.global",
-      "pm disable-user --user 0 com.miui.analytics",
-      "pm disable-user --user 0 com.miui.hybrid"
+      "pm uninstall -k --user 0 com.miui.msa.global",
+      "pm uninstall -k --user 0 com.miui.analytics",
+      "pm uninstall -k --user 0 com.miui.hybrid"
     ],
     "revertCommands": [
+      "pm install-existing --user 0 com.miui.msa.global",
+      "pm install-existing --user 0 com.miui.analytics",
+      "pm install-existing --user 0 com.miui.hybrid",
       "pm enable com.miui.msa.global",
       "pm enable com.miui.analytics",
       "pm enable com.miui.hybrid"
@@ -37,10 +40,12 @@
       "com.miui.daemon"
     ],
     "applyCommands": [
-      "pm disable-user --user 0 com.xiaomi.joyose",
-      "pm disable-user --user 0 com.miui.daemon"
+      "pm uninstall -k --user 0 com.xiaomi.joyose",
+      "pm uninstall -k --user 0 com.miui.daemon"
     ],
     "revertCommands": [
+      "pm install-existing --user 0 com.xiaomi.joyose",
+      "pm install-existing --user 0 com.miui.daemon",
       "pm enable com.xiaomi.joyose",
       "pm enable com.miui.daemon"
     ],
@@ -59,10 +64,12 @@
       "com.miui.yellowpage"
     ],
     "applyCommands": [
-      "pm disable-user --user 0 com.xiaomi.mipicks",
-      "pm disable-user --user 0 com.miui.yellowpage"
+      "pm uninstall -k --user 0 com.xiaomi.mipicks",
+      "pm uninstall -k --user 0 com.miui.yellowpage"
     ],
     "revertCommands": [
+      "pm install-existing --user 0 com.xiaomi.mipicks",
+      "pm install-existing --user 0 com.miui.yellowpage",
       "pm enable com.xiaomi.mipicks",
       "pm enable com.miui.yellowpage"
     ],
@@ -81,9 +88,10 @@
       "com.glance.internet"
     ],
     "applyCommands": [
-      "pm disable-user --user 0 com.miui.android.fashiongallery"
+      "pm uninstall -k --user 0 com.miui.android.fashiongallery"
     ],
     "revertCommands": [
+      "pm install-existing --user 0 com.miui.android.fashiongallery",
       "pm enable com.miui.android.fashiongallery"
     ],
     "tags": ["xiaomi", "lockscreen", "ads", "data"]
@@ -102,11 +110,14 @@
       "com.miui.bugreport"
     ],
     "applyCommands": [
-      "pm disable-user --user 0 com.miui.videoplayer",
-      "pm disable-user --user 0 com.miui.player",
-      "pm disable-user --user 0 com.miui.bugreport"
+      "pm uninstall -k --user 0 com.miui.videoplayer",
+      "pm uninstall -k --user 0 com.miui.player",
+      "pm uninstall -k --user 0 com.miui.bugreport"
     ],
     "revertCommands": [
+      "pm install-existing --user 0 com.miui.videoplayer",
+      "pm install-existing --user 0 com.miui.player",
+      "pm install-existing --user 0 com.miui.bugreport",
       "pm enable com.miui.videoplayer",
       "pm enable com.miui.player",
       "pm enable com.miui.bugreport"

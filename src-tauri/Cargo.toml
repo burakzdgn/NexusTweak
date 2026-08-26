@@ -1,6 +1,6 @@
 [package]
 name = "nexus-tweak"
-version = "1.0.0"
+version = "1.0.1"
 description = "Android ADB Optimization and Management Tool"
 authors = ["NexusTweak Team"]
 edition = "2021"

@@ -268,7 +268,19 @@ async fn apply_tweak(
 
     let mut results = Vec::new();
     for cmd in &rule.apply_commands {
-        let res = client.shell(&serial, cmd).await?;
+        let mut res = client.shell(&serial, cmd).await?;
+        // If pm disable-user failed due to OEM/Xiaomi restriction, fallback to pm uninstall -k --user 0
+        if (!res.success || res.stdout.contains("SecurityException") || res.stdout.contains("Cannot disable system packages") || res.stdout.contains("Permission Denial"))
+            && (cmd.starts_with("pm disable-user") || cmd.starts_with("pm disable")) {
+            if let Some(pkg) = cmd.split_whitespace().last() {
+                let fallback_cmd = format!("pm uninstall -k --user 0 {}", pkg);
+                if let Ok(fallback_res) = client.shell(&serial, &fallback_cmd).await {
+                    if fallback_res.success || fallback_res.stdout.contains("Success") {
+                        res = fallback_res;
+                    }
+                }
+            }
+        }
         results.push(res);
     }
 
@@ -290,6 +302,12 @@ async fn revert_tweak(
 
     let mut results = Vec::new();
     for cmd in &rule.revert_commands {
+        // If restoring a package via pm enable, ensure install-existing is called first in case it was uninstalled for user 0
+        if cmd.starts_with("pm enable") {
+            if let Some(pkg) = cmd.split_whitespace().last() {
+                let _ = AdbCommands::restore_package_user0(&client, &serial, pkg).await;
+            }
+        }
         let res = client.shell(&serial, cmd).await?;
         results.push(res);
     }

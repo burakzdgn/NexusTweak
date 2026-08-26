@@ -17,10 +17,10 @@ function sanitizeErrorMessage(rawMsg: string, lang: 'tr' | 'en'): string {
   }
   if (msg.includes('Cannot disable system packages') || msg.includes('SecurityException')) {
     return lang === 'tr'
-      ? 'Xiaomi/MIUI Paket Kısıtlaması: Sistem paketlerini devre dışı bırakabilmek için telefonunuzun Ayarlar > Geliştirici Seçenekleri menüsünden "USB Hata Ayıklama (Güvenlik Ayarları)" seçeneğini açmanız gerekmektedir.'
-      : 'Xiaomi/MIUI Package Restriction: Please enable "USB Debugging (Security Settings)" in your phone\'s Developer Options.';
+      ? 'Xiaomi/MIUI Sistem Kısıtlaması: Xiaomi ROM\'u sistem paketlerinin standart dondurulmasını engelliyor. NexusTweak kullanıcı için kaldırma (User 0 debloat) yöntemine otomatik geçti.'
+      : 'Xiaomi/MIUI System Restriction: Xiaomi restricts direct package freezing. NexusTweak will use User 0 uninstallation.';
   }
-  if (msg.includes('Unknown package')) {
+  if (msg.includes('Unknown package') || msg.includes('not installed')) {
     const match = msg.match(/Unknown package: ([^\s\r\n]+)/);
     const pkg = match ? match[1] : '';
     return lang === 'tr'
@@ -132,18 +132,32 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
         get().autoBackupEnabled
       );
 
-      const hasError = results.some(
-        (r) => !r.success || r.stdout.includes('Exception') || r.stdout.includes('Error:')
-      );
+      const isResultOkOrAbsent = (r: (typeof results)[0]) => {
+        if (r.success) return true;
+        const out = (r.stdout + ' ' + r.stderr).toLowerCase();
+        return (
+          out.includes('unknown package') ||
+          out.includes('not installed for') ||
+          out.includes('not installed')
+        );
+      };
 
-      if (!hasError) {
+      const hasRealError = results.some((r) => !isResultOkOrAbsent(r));
+
+      if (!hasRealError) {
+        const hasAbsent = results.some((r) => {
+          const out = (r.stdout + ' ' + r.stderr).toLowerCase();
+          return out.includes('unknown package') || out.includes('not installed');
+        });
         useLogStore.getState().addLog(
           'success',
           ruleTitle,
-          lang === 'tr' ? 'Optimizasyon başarıyla uygulandı.' : 'Optimization applied successfully.'
+          hasAbsent
+            ? (lang === 'tr' ? 'Başarıyla uygulandı (Paket bu ROM sürümünde zaten kaldırılmış/bulunmuyor).' : 'Successfully applied (Package already absent on this ROM).')
+            : (lang === 'tr' ? 'Optimizasyon başarıyla uygulandı.' : 'Optimization applied successfully.')
         );
       } else {
-        const errRes = results.find((r) => !r.success || r.stdout.includes('Exception')) || results[0];
+        const errRes = results.find((r) => !isResultOkOrAbsent(r)) || results[0];
         const rawMsg = errRes.stdout || errRes.stderr;
         const msg = sanitizeErrorMessage(rawMsg, lang);
         useLogStore.getState().addLog('error', `${ruleTitle} (Hata)`, msg);
@@ -229,20 +243,34 @@ export const useTweaksStore = create<TweaksState>((set, get) => ({
       const translated = translateTweakRule(rule, lang);
       try {
         const results = await AdbBridge.applyTweak(activeDevice.serial, deviceName, rule.id, false);
-        const hasError = results.some(
-          (r) => !r.success || r.stdout.includes('Exception') || r.stdout.includes('Error:')
-        );
+        const isResultOkOrAbsent = (r: (typeof results)[0]) => {
+          if (r.success) return true;
+          const out = (r.stdout + ' ' + r.stderr).toLowerCase();
+          return (
+            out.includes('unknown package') ||
+            out.includes('not installed for') ||
+            out.includes('not installed')
+          );
+        };
 
-        if (!hasError) {
+        const hasRealError = results.some((r) => !isResultOkOrAbsent(r));
+
+        if (!hasRealError) {
           successCount++;
+          const hasAbsent = results.some((r) => {
+            const out = (r.stdout + ' ' + r.stderr).toLowerCase();
+            return out.includes('unknown package') || out.includes('not installed');
+          });
           useLogStore.getState().addLog(
             'success',
             translated.name,
-            lang === 'tr' ? 'Başarıyla uygulandı' : 'Successfully applied'
+            hasAbsent
+              ? (lang === 'tr' ? 'Başarıyla uygulandı (Paket bu ROM sürümünde zaten bulunmuyor)' : 'Successfully applied (Package already absent on this ROM)')
+              : (lang === 'tr' ? 'Başarıyla uygulandı' : 'Successfully applied')
           );
         } else {
           failedCount++;
-          const errRes = results.find((r) => !r.success || r.stdout.includes('Exception')) || results[0];
+          const errRes = results.find((r) => !isResultOkOrAbsent(r)) || results[0];
           const rawMsg = errRes.stdout || errRes.stderr;
           const msg = sanitizeErrorMessage(rawMsg, lang);
           useLogStore.getState().addLog('error', `${translated.name} (Hata)`, msg);
