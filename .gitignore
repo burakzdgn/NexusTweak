@@ -14,8 +14,11 @@ src-tauri/target
 src-tauri/binaries/adb.exe
 src-tauri/binaries/adb
 
-# Local Backup Data
+# Local Backup & Extracted Data
 device_backups/
+src-tauri/device_backups/
+extracted_apks/
+src-tauri/extracted_apks/
 
 # Local Showcase Media
 showcase_media/
