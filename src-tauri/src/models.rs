@@ -170,6 +170,8 @@ pub struct DiagnosticReport {
     pub zram_total_mb: u64,
     pub zram_used_mb: u64,
     pub is_ram_critical: bool,
+    pub is_virtual_ram_enabled: bool,
+    pub virtual_ram_size_gb: Option<f32>,
     pub system_server_cpu_time: Option<String>,
     pub storage_free_gb: f32,
     pub storage_total_gb: f32,

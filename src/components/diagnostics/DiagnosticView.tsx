@@ -431,38 +431,99 @@ export const DiagnosticView: React.FC = () => {
             </div>
           </div>
 
-          {/* 2.5 Quick Pro-Tip for High Load Average */}
+          {/* 2.5 Load Average & Virtual RAM Intelligence Card */}
           {report.is_load_critical && (
-            <div className="p-4.5 rounded-2xl bg-gradient-to-r from-amber-950/30 via-[#12141c] to-indigo-950/30 border border-amber-500/40 shadow-lg flex items-start space-x-3.5">
-              <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
-                <Zap className="w-5 h-5" />
-              </div>
-              <div className="space-y-1 text-xs leading-relaxed">
-                <p className="font-bold text-sm text-white flex items-center space-x-2">
-                  <span>
-                    {lang === 'tr'
-                      ? '⚡ Yüksek İşlemci Yükü (Load Average) Neden Hemen Düşmez ve Nasıl Çözülür?'
-                      : '⚡ Why Does Load Average Stay High & How to Fix It?'}
+            <div className="bg-[#12141c]/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center space-x-3.5">
+                  <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">
+                      {lang === 'tr'
+                        ? 'İşlemci Yük Kuyruğu (Load Average) ve Sanal RAM Durumu'
+                        : 'CPU Load Average & Virtual RAM Status'}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {lang === 'tr'
+                        ? 'Yük ortalaması; işlemci kullanımının yanı sıra yavaş depolamadan (eMMC) dosya bekleyen (I/O Wait) iş parçacıklarını da kapsar.'
+                        : 'Load Average includes both active CPU processes and I/O Wait threads waiting for storage.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sanal RAM status badge */}
+                <div className="shrink-0">
+                  <span
+                    className={clsx(
+                      'px-3 py-1 rounded-full text-xs font-semibold tracking-wide flex items-center space-x-1.5',
+                      report.is_virtual_ram_enabled
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    )}
+                  >
+                    <span
+                      className={clsx(
+                        'w-2 h-2 rounded-full',
+                        report.is_virtual_ram_enabled ? 'bg-amber-400' : 'bg-emerald-400'
+                      )}
+                    />
+                    <span>
+                      {report.is_virtual_ram_enabled
+                        ? lang === 'tr'
+                          ? `Sanal RAM: Açık ${report.virtual_ram_size_gb ? `(+${report.virtual_ram_size_gb} GB)` : ''}`
+                          : `Virtual RAM: Enabled ${report.virtual_ram_size_gb ? `(+${report.virtual_ram_size_gb} GB)` : ''}`
+                        : lang === 'tr'
+                        ? 'Sanal RAM: Kapalı (Optimal)'
+                        : 'Virtual RAM: Disabled (Optimal)'}
+                    </span>
                   </span>
-                </p>
-                <p className="text-slate-300">
-                  {lang === 'tr'
-                    ? 'Android/Linux sistemlerinde Load Average yalnızca CPU kullanımını değil; yavaş depolamadan (eMMC) dosya bekleyen (I/O Wait) iş parçacıklarını da sayar.'
-                    : 'On Android/Linux, Load Average counts both active CPU threads and I/O Wait threads blocked on storage.'}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 text-slate-300">
-                  <div className="bg-black/30 p-2.5 rounded-lg border border-white/5">
-                    <strong className="text-amber-300">1. Bellek Uzantısı (Sanal RAM):</strong>{' '}
-                    {lang === 'tr'
-                      ? 'Telefonunuzun Ayarlar > Ek Ayarlar > Bellek Uzantısı menüsüne giderek Sanal RAM\'i KAPATIN. eMMC yongasının sürekli swap yazmasını engelleyerek yükü anında yarı yarıya düşürür.'
-                      : 'Go to Settings > Additional Settings > Memory Extension and turn it OFF to stop swap I/O thrashing.'}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                <div
+                  className={clsx(
+                    'p-4 rounded-xl border space-y-1.5',
+                    report.is_virtual_ram_enabled
+                      ? 'bg-amber-950/20 border-amber-500/30'
+                      : 'bg-[#181b26]/70 border-slate-800'
+                  )}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs flex items-center justify-center">
+                      1
+                    </span>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      {lang === 'tr' ? 'Sanal RAM / Bellek Uzantısı' : 'Virtual RAM / Memory Extension'}
+                    </h4>
                   </div>
-                  <div className="bg-black/30 p-2.5 rounded-lg border border-white/5">
-                    <strong className="text-cyan-300">2. Yeniden Başlatma Sonrası 5 Dakika:</strong>{' '}
-                    {lang === 'tr'
-                      ? 'Cihaz yeniden açıldığında Google Play ve Medya Tarayıcı ilk 3-5 dakika disk taraması yapar; yükün oturması için birkaç dakika bekleyin.'
-                      : 'MediaScanner and Play Store scan storage for 3-5 mins right after boot before stabilizing.'}
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {report.is_virtual_ram_enabled
+                      ? lang === 'tr'
+                        ? 'Sanal RAM şu an AÇIK olarak tespit edildi. eMMC depolama yongası yavaş olduğundan Ayarlar > Ek Ayarlar > Bellek Uzantısı menüsünden kapatmanız önerilir.'
+                        : 'Virtual RAM is currently ON. It is recommended to turn it OFF in Settings > Memory Extension to prevent slow disk I/O.'
+                      : lang === 'tr'
+                      ? 'Sanal RAM cihazınızda KAPALI olarak tespit edildi. eMMC flash depolamaya gereksiz swap yazılması önlenmiş durumda.'
+                      : 'Virtual RAM is OFF. Unnecessary disk swap writes are already avoided.'}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-[#181b26]/70 border border-slate-800 space-y-1.5">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold text-xs flex items-center justify-center">
+                      2
+                    </span>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      {lang === 'tr' ? 'Açılış İndekslemesi (3-5 Dakika)' : 'Boot Indexing Period'}
+                    </h4>
                   </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {lang === 'tr'
+                      ? 'Cihaz yeniden açıldığında Google Play Protect, Medya Tarayıcı ve sistem servisleri ilk 3-5 dakika depolamayı tarar; yükün normale dönmesi için birkaç dakika bekleyiniz.'
+                      : 'After boot, Google Play Protect and MediaScanner scan files for 3-5 minutes before CPU load settles.'}
+                  </p>
                 </div>
               </div>
             </div>

@@ -99,6 +99,73 @@ impl DiagnosticEngine {
 
         let is_ram_critical = available_ram_mb < 250 || (zram_used_mb > 1000 && available_ram_mb < 500);
 
+        // 5.1 Virtual RAM / Memory Extension (Sanal RAM) Detection
+        let mut is_virtual_ram_enabled = false;
+        let mut virtual_ram_size_gb = None;
+
+        // Check Xiaomi / MIUI / HyperOS
+        if let Some(extm_enable) = props.get("persist.miui.extm.enable").or_else(|| props.get("persist.sys.miui.extm.enable")) {
+            if extm_enable.trim() == "1" {
+                is_virtual_ram_enabled = true;
+            } else if extm_enable.trim() == "0" {
+                is_virtual_ram_enabled = false;
+            }
+        }
+        if let Some(bdsize) = props.get("persist.miui.extm.bdsize").or_else(|| props.get("persist.sys.miui.extm.bdsize")) {
+            if let Ok(mb) = bdsize.trim().parse::<f32>() {
+                if mb > 0.0 {
+                    is_virtual_ram_enabled = true;
+                    virtual_ram_size_gb = Some((mb / 1024.0 * 10.0).round() / 10.0);
+                } else if bdsize.trim() == "0" {
+                    is_virtual_ram_enabled = false;
+                }
+            }
+        }
+
+        // Check Samsung RAM Plus
+        if let Some(ramplus) = props.get("persist.sys.ramplus.size") {
+            if let Ok(gb) = ramplus.trim().parse::<f32>() {
+                if gb > 0.0 {
+                    is_virtual_ram_enabled = true;
+                    virtual_ram_size_gb = Some(gb);
+                } else {
+                    is_virtual_ram_enabled = false;
+                }
+            }
+        }
+
+        // Check OPPO / Realme
+        if let Some(oplus_ram) = props.get("persist.sys.oplus.ram_expand_size") {
+            if let Ok(mb) = oplus_ram.trim().parse::<f32>() {
+                if mb > 0.0 {
+                    is_virtual_ram_enabled = true;
+                    virtual_ram_size_gb = Some((mb / 1024.0 * 10.0).round() / 10.0);
+                } else {
+                    is_virtual_ram_enabled = false;
+                }
+            }
+        }
+
+        // Check via system settings if not determined by props
+        if !is_virtual_ram_enabled {
+            let miui_setting = client.shell(serial, "settings get global miui_ram_expansion_size").await.unwrap_or_default();
+            if let Ok(val) = miui_setting.stdout.trim().parse::<f32>() {
+                if val > 0.0 {
+                    is_virtual_ram_enabled = true;
+                    virtual_ram_size_gb = Some((val / 1024.0 * 10.0).round() / 10.0);
+                }
+            }
+        }
+        if !is_virtual_ram_enabled {
+            let sam_setting = client.shell(serial, "settings get global ram_expand_size").await.unwrap_or_default();
+            if let Ok(val) = sam_setting.stdout.trim().parse::<f32>() {
+                if val > 0.0 {
+                    is_virtual_ram_enabled = true;
+                    virtual_ram_size_gb = Some(val);
+                }
+            }
+        }
+
         // 6. Storage Analysis (df /data)
         let df_res = client.shell(serial, "df -k /data").await.unwrap_or_default();
         let mut storage_total_gb = 64.0f32;
@@ -246,20 +313,42 @@ impl DiagnosticEngine {
         }
 
         // Issue 3: RAM & ZRAM Compression Pressure
-        if is_ram_critical {
+        if is_ram_critical || is_virtual_ram_enabled {
+            let recommendation = if is_virtual_ram_enabled {
+                if let Some(size) = virtual_ram_size_gb {
+                    format!("Gereksiz arka plan servislerini debloat edin ve cihaz ayarlarından Sanal RAM / Bellek Uzantısını kapatın (Şu an açık: +{:.1} GB).", size)
+                } else {
+                    "Gereksiz arka plan servislerini debloat edin ve cihaz ayarlarından Sanal RAM / Bellek Uzantısını kapatın (Şu an açık).".into()
+                }
+            } else {
+                "Sanal RAM zaten kapalı (Optimal). Fiziksel RAM tasarrufu için arka planda CPU/RAM tüketen gereksiz servisleri debloat edin.".into()
+            };
+
             detected_issues.push(DiagnosticIssue {
                 id: "issue_zram_pressure".into(),
-                title: "Kritik RAM Sıkışması ve ZRAM (Sanal Bellek) Baskısı".into(),
-                severity: "critical".into(),
-                description: format!(
-                    "Kullanılabilir fiziksel RAM yalnızca ~{} MB. Sistem açığı kapatmak için {} MB ZRAM sıkıştırması kullanıyor.",
-                    available_ram_mb, zram_used_mb
-                ),
+                title: if is_virtual_ram_enabled {
+                    "Kritik RAM Sıkışması ve Sanal RAM (eMMC Swap) Baskısı".into()
+                } else {
+                    "Düşük Fiziksel RAM Baskısı (Sanal RAM Kapalı)".into()
+                },
+                severity: if is_virtual_ram_enabled { "critical".into() } else { "warning".into() },
+                description: if is_virtual_ram_enabled {
+                    format!(
+                        "Kullanılabilir fiziksel RAM ~{} MB. Sistem Sanal RAM (Bellek Uzantısı) kullanarak yavaş eMMC depolamaya sürekli veri yazıp siliyor.",
+                        available_ram_mb
+                    )
+                } else {
+                    format!(
+                        "Kullanılabilir fiziksel RAM ~{} MB. Sanal RAM kapalı tutulduğu için eMMC disk kilitlenmesi önlenmiştir.",
+                        available_ram_mb
+                    )
+                },
                 technical_details: format!(
-                    "Toplam RAM: {} MB, Boş: {} MB, ZRAM Kullanımı: {} MB / {} MB. Zayıf CPU çekirdekleri belleği sürekli sıkıştırıp açmaktan arayüze yetişemiyor.",
-                    total_ram_mb, free_ram_mb, zram_used_mb, zram_total_mb
+                    "Toplam RAM: {} MB, Boş: {} MB, ZRAM: {} MB / {} MB. Sanal RAM Durumu: {}.",
+                    total_ram_mb, free_ram_mb, zram_used_mb, zram_total_mb,
+                    if is_virtual_ram_enabled { "Açık (Yavaş depolamaya yazılıyor)" } else { "Kapalı (Optimal)" }
                 ),
-                recommendation: "Gereksiz arka plan servislerini debloat edin ve cihaz ayarlarından Sanal RAM / Bellek Uzantısını kapatmayı değerlendirin.".into(),
+                recommendation,
             });
         }
 
@@ -324,6 +413,8 @@ impl DiagnosticEngine {
             zram_total_mb,
             zram_used_mb,
             is_ram_critical,
+            is_virtual_ram_enabled,
+            virtual_ram_size_gb,
             system_server_cpu_time,
             storage_free_gb,
             storage_total_gb,

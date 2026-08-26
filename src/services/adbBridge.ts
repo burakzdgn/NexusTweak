@@ -505,6 +505,8 @@ export class AdbBridge {
         zram_total_mb: 4096,
         zram_used_mb: 1620,
         is_ram_critical: true,
+        is_virtual_ram_enabled: false,
+        virtual_ram_size_gb: undefined,
         system_server_cpu_time: '14.2% CPU (781 Saat)',
         storage_free_gb: 68.4,
         storage_total_gb: 128.0,

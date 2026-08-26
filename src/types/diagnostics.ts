@@ -52,6 +52,8 @@ export interface DiagnosticReport {
   zram_total_mb: number;
   zram_used_mb: number;
   is_ram_critical: boolean;
+  is_virtual_ram_enabled: boolean;
+  virtual_ram_size_gb?: number;
   system_server_cpu_time?: string;
   storage_free_gb: number;
   storage_total_gb: number;
