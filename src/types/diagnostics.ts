@@ -45,6 +45,11 @@ export interface DiagnosticReport {
   load_avg_5m: number;
   load_avg_15m: number;
   cpu_core_count: number;
+  kernel_d_threads_count: number;
+  user_d_threads_count: number;
+  net_user_load_1m: number;
+  soc_family: string;
+  load_threshold: number;
   is_load_critical: boolean;
   total_ram_mb: number;
   free_ram_mb: number;

@@ -35,6 +35,40 @@ impl DiagnosticEngine {
             .unwrap_or_else(|| "Standard SoC".into());
         let android_version = props.get("ro.build.version.release").cloned().unwrap_or_else(|| "Android".into());
 
+        let soc_raw = format!(
+            "{} {} {}",
+            soc,
+            props.get("ro.hardware").unwrap_or(&"".into()),
+            props.get("ro.board.platform").unwrap_or(&"".into())
+        )
+        .to_lowercase();
+
+        let soc_family = if soc_raw.contains("mt")
+            || soc_raw.contains("helio")
+            || soc_raw.contains("dimensity")
+            || soc_raw.contains("mediatek")
+        {
+            "MediaTek Helio / Dimensity".to_string()
+        } else if soc_raw.contains("snapdragon")
+            || soc_raw.contains("qcom")
+            || soc_raw.contains("sm")
+            || soc_raw.contains("sdm")
+        {
+            "Qualcomm Snapdragon".to_string()
+        } else if soc_raw.contains("exynos") || soc_raw.contains("s5e") || soc_raw.contains("universal") {
+            "Samsung Exynos".to_string()
+        } else if soc_raw.contains("tensor")
+            || soc_raw.contains("gs101")
+            || soc_raw.contains("gs201")
+            || soc_raw.contains("zuma")
+        {
+            "Google Tensor".to_string()
+        } else if soc_raw.contains("unisoc") || soc_raw.contains("sprd") || soc_raw.contains("tiger") {
+            "UNISOC Tiger".to_string()
+        } else {
+            "Standard ARM SoC".to_string()
+        };
+
         // 2. CPU Core Count
         let nproc_res = client.shell(serial, "nproc").await.unwrap_or_default();
         let cpu_core_count = nproc_res.stdout.trim().parse::<usize>().unwrap_or(8);
@@ -58,15 +92,42 @@ impl DiagnosticEngine {
             format!("{} Saat {} Dk", hours, mins)
         };
 
-        // 4. Load Average (/proc/loadavg)
+        // 4. Load Average & Dynamic Kernel D-State Analysis (/proc/loadavg + ps threads)
         let loadavg_res = client.shell(serial, "cat /proc/loadavg").await.unwrap_or_default();
         let load_parts: Vec<&str> = loadavg_res.stdout.split_whitespace().collect();
         let load_avg_1m = load_parts.get(0).and_then(|s| s.parse::<f32>().ok()).unwrap_or(1.0);
         let load_avg_5m = load_parts.get(1).and_then(|s| s.parse::<f32>().ok()).unwrap_or(1.0);
         let load_avg_15m = load_parts.get(2).and_then(|s| s.parse::<f32>().ok()).unwrap_or(1.0);
 
-        // Load is critical if 1m loadavg is 1.5x higher than core count or above 6.0
-        let is_load_critical = load_avg_1m > (cpu_core_count as f32 * 1.25) || load_avg_1m > 6.0;
+        // Dynamically inspect all threads to separate Kernel Watchdogs (D-state) from genuine User I/O load
+        let ps_threads_res = client.shell(serial, "ps -A -T -o PID,PPID,USER,S,CMD").await.unwrap_or_default();
+        let mut kernel_d_threads_count = 0usize;
+        let mut user_d_threads_count = 0usize;
+
+        for line in ps_threads_res.stdout.lines().skip(1) {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 5 {
+                let ppid = parts[1];
+                let user = parts[2];
+                let state = parts[3];
+                let cmd = parts[4..].join(" ");
+
+                if state == "D" {
+                    if ppid == "2" || cmd.starts_with('[') || user == "root" {
+                        kernel_d_threads_count += 1;
+                    } else {
+                        user_d_threads_count += 1;
+                    }
+                }
+            }
+        }
+
+        // Net User Load is raw load minus kernel baseline D-threads
+        let net_user_load_1m = ((load_avg_1m - (kernel_d_threads_count as f32)).max(0.0) * 100.0).round() / 100.0;
+        let load_threshold = ((cpu_core_count as f32) * 1.25 * 10.0).round() / 10.0;
+
+        // Load is critical if ACTUAL user applications/disk queue exceed threshold
+        let is_load_critical = net_user_load_1m > load_threshold || user_d_threads_count > (cpu_core_count / 2);
 
         // 5. Memory & ZRAM (/proc/meminfo)
         let meminfo_res = client.shell(serial, "cat /proc/meminfo").await.unwrap_or_default();
@@ -276,21 +337,21 @@ impl DiagnosticEngine {
         // 9. Generate Diagnostic Issues with Human-Readable Findings
         let mut detected_issues = Vec::new();
 
-        // Issue 1: High Load Average
+        // Issue 1: High Load Average (computed after subtracting kernel watchdog baseline)
         if is_load_critical {
             detected_issues.push(DiagnosticIssue {
                 id: "issue_high_load_avg".into(),
-                title: format!("Aşırı Yüksek İşlemci Yük Kuyruğu (Load Average: {:.2})", load_avg_1m),
+                title: format!("Yüksek Kullanıcı Yük Kuyruğu (Net Yük: {:.2})", net_user_load_1m),
                 severity: "critical".into(),
                 description: format!(
-                    "{} çekirdekli işlemcinizde normalde boşta yükün 1.0 - 2.5 arasında olması gerekirken şu an {:.2} iş parçacığı sırada bekliyor.",
-                    cpu_core_count, load_avg_1m
+                    "{} çekirdekli işlemcinizde donanım bekçileri haricinde net {:.2} iş parçacığı sırada bekliyor. (Eşik: {:.1})",
+                    cpu_core_count, net_user_load_1m, load_threshold
                 ),
                 technical_details: format!(
-                    "İşlemci ({}) ve depolama birimi arka plan işlemlerini işlemekte I/O Wait darboğazı yaşıyor. 1dk: {:.2}, 5dk: {:.2}, 15dk: {:.2}",
-                    soc, load_avg_1m, load_avg_5m, load_avg_15m
+                    "SoC Ailesi: {} ({}). Ham Linux Yükü: {:.2} ({} kernel bekçi thread'i çıkarıldıktan sonra Net: {:.2}).",
+                    soc_family, soc, load_avg_1m, kernel_d_threads_count, net_user_load_1m
                 ),
-                recommendation: "Arka planda sürekli CPU tüketen telemetri ve bloatware servislerini kapatın.".into(),
+                recommendation: "Arka planda çalışan ağır uygulamaları ve disk kuyruğu oluşturan servisleri temizleyin.".into(),
             });
         }
 
@@ -406,6 +467,11 @@ impl DiagnosticEngine {
             load_avg_5m,
             load_avg_15m,
             cpu_core_count,
+            kernel_d_threads_count,
+            user_d_threads_count,
+            net_user_load_1m,
+            soc_family,
+            load_threshold,
             is_load_critical,
             total_ram_mb,
             free_ram_mb,

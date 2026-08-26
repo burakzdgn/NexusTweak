@@ -249,7 +249,7 @@ export const DiagnosticView: React.FC = () => {
                     <Zap className="w-4 h-4" />
                   </div>
                   <h4 className="text-sm font-bold text-white">
-                    {lang === 'tr' ? 'İşlemci Yük Kuyruğu (Load Avg)' : 'CPU Load Average'}
+                    {lang === 'tr' ? 'İşlemci Yükü (Net Aktif)' : 'Active CPU Load'}
                   </h4>
                 </div>
                 <span
@@ -263,20 +263,21 @@ export const DiagnosticView: React.FC = () => {
                   {report.is_load_critical
                     ? lang === 'tr'
                       ? 'Yüksek Yük'
-                      : 'High Overload'
+                      : 'High Load'
                     : lang === 'tr'
-                    ? 'Normal'
-                    : 'Normal'}
+                    ? 'Optimal / Boşta'
+                    : 'Optimal'}
                 </span>
               </div>
 
               <div className="space-y-2 mt-4">
                 <div className="flex justify-between items-baseline">
                   <span className="text-2xl font-black text-white tracking-tight">
-                    {report.load_avg_1m.toFixed(2)}
+                    {report.net_user_load_1m.toFixed(2)}
                   </span>
-                  <span className="text-xs text-slate-400 font-mono">
-                    5m: {report.load_avg_5m.toFixed(2)} | 15m: {report.load_avg_15m.toFixed(2)}
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Ham: {report.load_avg_1m.toFixed(1)}{' '}
+                    {report.kernel_d_threads_count > 0 ? `(-${report.kernel_d_threads_count} bekçi)` : ''}
                   </span>
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
@@ -286,14 +287,17 @@ export const DiagnosticView: React.FC = () => {
                       report.is_load_critical ? 'bg-rose-500' : 'bg-emerald-500'
                     )}
                     style={{
-                      width: `${Math.min((report.load_avg_1m / 16) * 100, 100)}%`,
+                      width: `${Math.min(
+                        (report.net_user_load_1m / Math.max(report.load_threshold, 1.0)) * 100,
+                        100
+                      )}%`,
                     }}
                   />
                 </div>
                 <p className="text-[11px] text-slate-400 mt-2">
                   {lang === 'tr'
-                    ? `Normalde boşta 1.0 - 2.5 arası beklenir. Şu an ortalama ${report.load_avg_1m.toFixed(1)} iş parçacığı sırada bekliyor.`
-                    : `Normal idle is 1.0 - 2.5. Currently ~${report.load_avg_1m.toFixed(1)} threads waiting.`}
+                    ? `${report.soc_family}. Standart eşik: ${report.load_threshold}. Net kullanıcı yükü: ${report.net_user_load_1m.toFixed(2)}.`
+                    : `${report.soc_family}. Standard threshold: ${report.load_threshold}. Net active load: ${report.net_user_load_1m.toFixed(2)}.`}
                 </p>
               </div>
             </div>
@@ -431,103 +435,106 @@ export const DiagnosticView: React.FC = () => {
             </div>
           </div>
 
-          {/* 2.5 Load Average & Virtual RAM Intelligence Card */}
-          {report.is_load_critical && (
-            <div className="bg-[#12141c]/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div className="flex items-center space-x-3.5">
-                  <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                  <div>
+          {/* 2.5 Load Average & Dynamic Hardware Intelligence Card */}
+          <div className="bg-[#12141c]/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center space-x-3.5">
+                <div className="p-2.5 rounded-xl bg-gradient-to-tr from-amber-500/20 to-indigo-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
                     <h3 className="text-base font-bold text-white">
                       {lang === 'tr'
-                        ? 'İşlemci Yük Kuyruğu (Load Average) ve Sanal RAM Durumu'
-                        : 'CPU Load Average & Virtual RAM Status'}
+                        ? 'Otomatik Donanım Standardı & Yük Ayrıştırma Analizi'
+                        : 'Dynamic Hardware Benchmark & Load Decomposition'}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {lang === 'tr'
-                        ? 'Yük ortalaması; işlemci kullanımının yanı sıra yavaş depolamadan (eMMC) dosya bekleyen (I/O Wait) iş parçacıklarını da kapsar.'
-                        : 'Load Average includes both active CPU processes and I/O Wait threads waiting for storage.'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Sanal RAM status badge */}
-                <div className="shrink-0">
-                  <span
-                    className={clsx(
-                      'px-3 py-1 rounded-full text-xs font-semibold tracking-wide flex items-center space-x-1.5',
-                      report.is_virtual_ram_enabled
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    )}
-                  >
-                    <span
-                      className={clsx(
-                        'w-2 h-2 rounded-full',
-                        report.is_virtual_ram_enabled ? 'bg-amber-400' : 'bg-emerald-400'
-                      )}
-                    />
-                    <span>
-                      {report.is_virtual_ram_enabled
-                        ? lang === 'tr'
-                          ? `Sanal RAM: Açık ${report.virtual_ram_size_gb ? `(+${report.virtual_ram_size_gb} GB)` : ''}`
-                          : `Virtual RAM: Enabled ${report.virtual_ram_size_gb ? `(+${report.virtual_ram_size_gb} GB)` : ''}`
-                        : lang === 'tr'
-                        ? 'Sanal RAM: Kapalı (Optimal)'
-                        : 'Virtual RAM: Disabled (Optimal)'}
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      {report.soc_family}
                     </span>
-                  </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {lang === 'tr'
+                      ? 'NexusTweak; donanım bekçilerini ve sanal bellek durumunu otomatik tarayarak gerçek kullanıcı yükünü ayrıştırır.'
+                      : 'NexusTweak dynamically decomposes kernel watchdogs and virtual RAM to report true user workload.'}
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-                <div
+              {/* Dynamic Status Badges */}
+              <div className="flex items-center space-x-2 shrink-0">
+                <span
                   className={clsx(
-                    'p-4 rounded-xl border space-y-1.5',
+                    'px-3 py-1 rounded-full text-xs font-semibold tracking-wide flex items-center space-x-1.5',
                     report.is_virtual_ram_enabled
-                      ? 'bg-amber-950/20 border-amber-500/30'
-                      : 'bg-[#181b26]/70 border-slate-800'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                   )}
                 >
-                  <div className="flex items-center space-x-2">
-                    <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs flex items-center justify-center">
-                      1
-                    </span>
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                      {lang === 'tr' ? 'Sanal RAM / Bellek Uzantısı' : 'Virtual RAM / Memory Extension'}
-                    </h4>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <span
+                    className={clsx(
+                      'w-2 h-2 rounded-full',
+                      report.is_virtual_ram_enabled ? 'bg-amber-400' : 'bg-emerald-400'
+                    )}
+                  />
+                  <span>
                     {report.is_virtual_ram_enabled
                       ? lang === 'tr'
-                        ? 'Sanal RAM şu an AÇIK olarak tespit edildi. eMMC depolama yongası yavaş olduğundan Ayarlar > Ek Ayarlar > Bellek Uzantısı menüsünden kapatmanız önerilir.'
-                        : 'Virtual RAM is currently ON. It is recommended to turn it OFF in Settings > Memory Extension to prevent slow disk I/O.'
+                        ? `Sanal RAM: Açık ${report.virtual_ram_size_gb ? `(+${report.virtual_ram_size_gb} GB)` : ''}`
+                        : `Virtual RAM: Enabled ${report.virtual_ram_size_gb ? `(+${report.virtual_ram_size_gb} GB)` : ''}`
                       : lang === 'tr'
-                      ? 'Sanal RAM cihazınızda KAPALI olarak tespit edildi. eMMC flash depolamaya gereksiz swap yazılması önlenmiş durumda.'
-                      : 'Virtual RAM is OFF. Unnecessary disk swap writes are already avoided.'}
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#181b26]/70 border border-slate-800 space-y-1.5">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold text-xs flex items-center justify-center">
-                      2
-                    </span>
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                      {lang === 'tr' ? 'Açılış İndekslemesi (3-5 Dakika)' : 'Boot Indexing Period'}
-                    </h4>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {lang === 'tr'
-                      ? 'Cihaz yeniden açıldığında Google Play Protect, Medya Tarayıcı ve sistem servisleri ilk 3-5 dakika depolamayı tarar; yükün normale dönmesi için birkaç dakika bekleyiniz.'
-                      : 'After boot, Google Play Protect and MediaScanner scan files for 3-5 minutes before CPU load settles.'}
-                  </p>
-                </div>
+                      ? 'Sanal RAM: Kapalı (Optimal)'
+                      : 'Virtual RAM: Disabled (Optimal)'}
+                  </span>
+                </span>
               </div>
             </div>
-          )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+              <div className="p-4 rounded-xl bg-[#181b26]/70 border border-slate-800 space-y-1.5">
+                <div className="flex items-center space-x-2">
+                  <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold text-xs flex items-center justify-center">
+                    1
+                  </span>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    {lang === 'tr' ? 'Çekirdek Donanım Bekçisi Tabanı' : 'Kernel Watchdog Baseline'}
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {lang === 'tr'
+                    ? `${report.soc_family} mimarisinde ${report.kernel_d_threads_count} adet çekirdek bekçisi (wdtk, hang_detect vb.) kesintisiz uyku (D-state) modundadır. Bu taban ham yükten (${report.load_avg_1m.toFixed(2)}) düşülerek Net Kullanıcı Yükü (${report.net_user_load_1m.toFixed(2)}) hesaplanmıştır.`
+                    : `${report.soc_family} architecture keeps ${report.kernel_d_threads_count} hardware watchdogs in D-state. Subtracted from raw load (${report.load_avg_1m.toFixed(2)}) to yield Net Load (${report.net_user_load_1m.toFixed(2)}).`}
+                </p>
+              </div>
+
+              <div
+                className={clsx(
+                  'p-4 rounded-xl border space-y-1.5',
+                  report.is_virtual_ram_enabled
+                    ? 'bg-amber-950/20 border-amber-500/30'
+                    : 'bg-[#181b26]/70 border-slate-800'
+                )}
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold text-xs flex items-center justify-center">
+                    2
+                  </span>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    {lang === 'tr' ? 'Sanal RAM & Depolama Sağlığı' : 'Virtual RAM & Storage Health'}
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {report.is_virtual_ram_enabled
+                    ? lang === 'tr'
+                      ? 'Sanal RAM şu an AÇIK olarak tespit edildi. eMMC depolama yongası yavaş olduğundan Ayarlar > Ek Ayarlar > Bellek Uzantısı menüsünden kapatmanız önerilir.'
+                      : 'Virtual RAM is currently ON. It is recommended to turn it OFF in Settings > Memory Extension to prevent slow disk I/O.'
+                    : lang === 'tr'
+                    ? 'Sanal RAM cihazınızda KAPALI olarak tespit edildi. Yavaş depolamaya gereksiz swap yazılması önlenmiş ve I/O kilitlenmeleri engellenmiştir.'
+                    : 'Virtual RAM is OFF. Unnecessary disk swap writes and I/O lockups are prevented.'}
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* 3. "🚨 Neden Yavaş? (Tespit Edilen Temel Sorunlar)" Section */}
           <div className="bg-[#12141c]/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
