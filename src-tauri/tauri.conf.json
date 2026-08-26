@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v2/tooling/cli/schema.json",
   "productName": "NexusTweak",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "identifier": "com.nexustweak.app",
   "build": {
     "beforeDevCommand": "npm run dev",
