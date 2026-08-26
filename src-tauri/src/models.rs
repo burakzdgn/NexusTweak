@@ -149,3 +149,82 @@ pub struct WhitelistEntry {
     pub reason: String,
     pub category: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiagnosticReport {
+    pub device_name: String,
+    pub model: String,
+    pub manufacturer: String,
+    pub soc: String,
+    pub android_version: String,
+    pub uptime_seconds: u64,
+    pub uptime_formatted: String,
+    pub load_avg_1m: f32,
+    pub load_avg_5m: f32,
+    pub load_avg_15m: f32,
+    pub cpu_core_count: usize,
+    pub is_load_critical: bool,
+    pub total_ram_mb: u64,
+    pub free_ram_mb: u64,
+    pub available_ram_mb: u64,
+    pub zram_total_mb: u64,
+    pub zram_used_mb: u64,
+    pub is_ram_critical: bool,
+    pub system_server_cpu_time: Option<String>,
+    pub storage_free_gb: f32,
+    pub storage_total_gb: f32,
+    pub storage_used_percent: u32,
+    pub detected_issues: Vec<DiagnosticIssue>,
+    pub top_cpu_processes: Vec<CpuProcessInfo>,
+    pub detected_bloat_processes: Vec<DetectedBloatProcess>,
+    pub fix_actions: Vec<FixAction>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiagnosticIssue {
+    pub id: String,
+    pub title: String,
+    pub severity: String, // "critical" | "warning" | "info"
+    pub description: String,
+    pub technical_details: String,
+    pub recommendation: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CpuProcessInfo {
+    pub name: String,
+    pub pid: Option<u32>,
+    pub cpu_percent: f32,
+    pub user_or_system: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetectedBloatProcess {
+    pub package_name: String,
+    pub app_name: String,
+    pub description: String,
+    pub cpu_time_info: Option<String>,
+    pub is_running: bool,
+    pub can_disable: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FixAction {
+    pub id: String,
+    pub title: String,
+    pub action_type: String, // "debloat_batch" | "reboot_device" | "apply_tweak"
+    pub target_packages: Vec<String>,
+    pub target_tweak_id: Option<String>,
+    pub description: String,
+    pub is_recommended: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiagnosticFixResult {
+    pub success: bool,
+    pub snapshot_id: Option<String>,
+    pub disabled_packages: Vec<String>,
+    pub reboot_triggered: bool,
+    pub message: String,
+}
+

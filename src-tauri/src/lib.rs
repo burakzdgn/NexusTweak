@@ -7,9 +7,12 @@ use std::path::PathBuf;
 use tokio::sync::Mutex;
 use tauri::State;
 
-use crate::adb::{AdbClient, AdbCommands, DeviceScanner, ScrcpyManager, ScrcpyOptions};
+use crate::adb::{
+    AdbClient, AdbCommands, DeviceScanner, DiagnosticEngine, ScrcpyManager, ScrcpyOptions,
+};
 use crate::models::{
-    AdbDevice, AdbExecutionResult, BackupSnapshot, DeviceInfo, HealthScore, PackageInfo, TweakRule
+    AdbDevice, AdbExecutionResult, BackupSnapshot, DeviceInfo, DiagnosticFixResult,
+    DiagnosticReport, HealthScore, PackageInfo, TweakRule,
 };
 use crate::rules::{BackupManager, RuleEngine};
 
@@ -479,6 +482,25 @@ async fn set_custom_adb_path(path: Option<String>, state: State<'_, AppState>) -
     Ok(client.get_adb_path())
 }
 
+#[tauri::command]
+async fn run_deep_diagnostics(serial: String, state: State<'_, AppState>) -> Result<DiagnosticReport, String> {
+    let client = state.adb_client.lock().await.clone();
+    DiagnosticEngine::run_diagnostics(&client, &serial).await
+}
+
+#[tauri::command]
+async fn execute_diagnostic_fixes(
+    serial: String,
+    device_name: Option<String>,
+    packages: Vec<String>,
+    reboot: bool,
+    state: State<'_, AppState>,
+) -> Result<DiagnosticFixResult, String> {
+    let client = state.adb_client.lock().await.clone();
+    let dname = device_name.unwrap_or_else(|| serial.clone());
+    DiagnosticEngine::execute_fixes(&client, &state.backup_manager, &serial, &dname, packages, reboot).await
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -520,6 +542,8 @@ pub fn run() {
             reboot_device,
             connect_wifi_device,
             set_custom_adb_path,
+            run_deep_diagnostics,
+            execute_diagnostic_fixes,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

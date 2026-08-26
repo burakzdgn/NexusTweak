@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard,
+  Activity,
   Cast,
   Zap,
   Sliders,
@@ -23,6 +24,7 @@ import { DisclaimerModal } from '../legal/DisclaimerModal';
 
 export type NavTab =
   | 'dashboard'
+  | 'diagnostics'
   | 'mirror'
   | 'profiles'
   | 'tweaks'
@@ -55,6 +57,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
       label: t.tab_dashboard,
       icon: LayoutDashboard,
       badge: null,
+    },
+    {
+      id: 'diagnostics' as NavTab,
+      label: t.tab_diagnostics,
+      icon: Activity,
+      badge: 'AI',
+      badgeColor: 'rose',
     },
     {
       id: 'mirror' as NavTab,

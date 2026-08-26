@@ -4,6 +4,7 @@ import { TweakRule } from '../types/tweaks';
 import { BackupSnapshot } from '../types/backup';
 import { AdbExecutionResult } from '../types/logs';
 import { ScrcpyOptions } from '../types/mirror';
+import { DiagnosticFixResult, DiagnosticReport } from '../types/diagnostics';
 
 // Check if running inside Tauri desktop runtime
 export const isTauriEnvironment = (): boolean => {
@@ -481,5 +482,136 @@ export class AdbBridge {
 
   public static async setCustomAdbPath(path: string): Promise<string> {
     return await this.invoke<string>('set_custom_adb_path', { path });
+  }
+
+  public static async runDeepDiagnostics(serial: string): Promise<DiagnosticReport> {
+    if (!isTauriEnvironment()) {
+      return {
+        device_name: 'Xiaomi Redmi Note 11 (spes)',
+        model: 'Redmi Note 11',
+        manufacturer: 'Xiaomi',
+        soc: 'Snapdragon 680 (SM6225)',
+        android_version: 'Android 13',
+        uptime_seconds: 1334474,
+        uptime_formatted: '15 Gün 10 Saat 41 Dk',
+        load_avg_1m: 16.35,
+        load_avg_5m: 18.20,
+        load_avg_15m: 19.58,
+        cpu_core_count: 8,
+        is_load_critical: true,
+        total_ram_mb: 6144,
+        free_ram_mb: 72,
+        available_ram_mb: 410,
+        zram_total_mb: 4096,
+        zram_used_mb: 1620,
+        is_ram_critical: true,
+        system_server_cpu_time: '14.2% CPU (781 Saat)',
+        storage_free_gb: 68.4,
+        storage_total_gb: 128.0,
+        storage_used_percent: 47,
+        detected_issues: [
+          {
+            id: 'issue_high_load_avg',
+            title: 'Aşırı Yüksek İşlemci Yük Kuyruğu (Load Average: 16.35 - 19.58)',
+            severity: 'critical',
+            description: '8 çekirdekli işlemcinizde normalde boşta yükün 1.0 - 2.5 arasında olması gerekirken şu an ortalama 16 ila 20 iş parçacığı sırada bekliyor.',
+            technical_details: 'Snapdragon 680 ve eMMC/UFS depolama birimi arka plan telemetrisi ve I/O Wait darboğazı yaşıyor.',
+            recommendation: 'Arka planda sürekli CPU ve disk sırası tüketen telemetri/bloatware servislerini kapatın.',
+          },
+          {
+            id: 'issue_long_uptime',
+            title: '15.4 Gündür Kesintisiz Çalışma (Uptime: 15 Gün 10 Saat)',
+            severity: 'critical',
+            description: 'Cihaz 15 gündür hiç yeniden başlatılmamış. Çekirdek süreç olan system_server 781 saatlik CPU süresi tüketmiş ve IPC kanalları tıkanmış durumda.',
+            technical_details: '1.334.474 saniye kesintisiz çalışma sonrası bellek parçalanması (fragmentation) arayüzde mikro takılmalara neden olur.',
+            recommendation: 'Optimizasyon işlemlerinden sonra cihazı bir kez yeniden başlatmak bellek kanallarını ve tamponları sıfırlayacaktır.',
+          },
+          {
+            id: 'issue_zram_pressure',
+            title: 'Kritik RAM Sıkışması ve ZRAM (Sanal Bellek) Baskısı',
+            severity: 'critical',
+            description: 'Fiziksel boş RAM yalnızca ~72 MB. Sistem bu açığı kapatmak için 4.09 GB ZRAM kullanıyor ve 1.62 GB sıkıştırılmış veri sürekli açılıp kapatılıyor.',
+            technical_details: 'Zayıf CPU çekirdekleri belleği sürekli sıkıştırıp açmaktan arayüz animasyonlarına yetişemiyor ve takılmalar meydana geliyor.',
+            recommendation: 'Arka plan servislerini temizleyin ve Ayarlar > Ek Ayarlar > Bellek Uzantısı (Sanal RAM) özelliğini kapatmayı değerlendirin.',
+          },
+          {
+            id: 'issue_active_bloatware',
+            title: 'Arka Planda 6 Adet Gereksiz Sistem & Telemetri Servisi Çalışıyor',
+            severity: 'critical',
+            description: 'Xiaomi arka plan servisleri ve gömülü Facebook/Amazon ajanları sürekli CPU ve RAM tüketiyor.',
+            technical_details: 'com.miui.daemon (22+ saat CPU), com.miui.powerkeeper (23+ saat CPU), com.facebook.services, com.miui.android.fashiongallery, com.amazon.appmanager aktif.',
+            recommendation: 'Tek tıkla otomatik güvenlik snapshot\'ı alarak bu servisleri güvenle devre dışı bırakın.',
+          },
+        ],
+        top_cpu_processes: [
+          { name: 'system_server', pid: 1450, cpu_percent: 14.2, user_or_system: 'System' },
+          { name: 'com.miui.daemon', pid: 3120, cpu_percent: 6.8, user_or_system: 'User' },
+          { name: 'com.miui.powerkeeper', pid: 3240, cpu_percent: 5.4, user_or_system: 'User' },
+          { name: 'com.facebook.services', pid: 5612, cpu_percent: 3.9, user_or_system: 'User' },
+          { name: 'com.miui.guardprovider', pid: 4890, cpu_percent: 3.1, user_or_system: 'System' },
+        ],
+        detected_bloat_processes: [
+          { package_name: 'com.miui.daemon', app_name: 'MIUI Daemon Telemetry', description: 'Xiaomi arka plan sistem ve kullanım telemetrisi toplayıcısı', cpu_time_info: '22+ saat CPU', is_running: true, can_disable: true },
+          { package_name: 'com.miui.powerkeeper', app_name: 'Xiaomi PowerKeeper', description: 'Arka planda gereksiz CPU tüketen agresif güç yöneticisi', cpu_time_info: '23+ saat CPU', is_running: true, can_disable: true },
+          { package_name: 'com.miui.android.fashiongallery', app_name: 'Wallpaper Carousel', description: 'Kilit ekranı haber ve sponsorlu görsel beslemesi', cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
+          { package_name: 'com.facebook.services', app_name: 'Facebook Services', description: 'Facebook kullanılmasa bile arka planda çalışan senkronizasyon', cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
+          { package_name: 'com.amazon.appmanager', app_name: 'Amazon App Manager', description: 'Amazon arka plan telemetri ve indirme ajanı', cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
+          { package_name: 'com.miui.msa.global', app_name: 'MIUI System Ads (MSA)', description: 'MIUI arayüz reklam motoru ve bildirim basıcı', cpu_time_info: 'Yüklü (Etkin)', is_running: true, can_disable: true },
+        ],
+        fix_actions: [
+          {
+            id: 'action_disable_detected_bloat',
+            title: 'Tespit Edilen 6 Şişkinlik & Telemetri Servisini Kapat',
+            action_type: 'debloat_batch',
+            target_packages: [
+              'com.miui.daemon',
+              'com.miui.powerkeeper',
+              'com.miui.android.fashiongallery',
+              'com.facebook.services',
+              'com.amazon.appmanager',
+              'com.miui.msa.global',
+            ],
+            description: 'Otomatik güvenlik snapshot\'ı alır ve arka planda CPU/RAM tüketen gereksiz servisleri güvenle devre dışı bırakır.',
+            is_recommended: true,
+          },
+          {
+            id: 'action_reboot_device',
+            title: 'Cihazı Yeniden Başlatarak Bellek Sızıntılarını Temizle',
+            action_type: 'reboot_device',
+            target_packages: [],
+            description: '15 gün 10 saat süren kesintisiz çalışma sonrası system_server ve IPC bellek parçalanmasını sıfırlar.',
+            is_recommended: true,
+          },
+        ],
+      };
+    }
+
+    return await this.invoke<DiagnosticReport>('run_deep_diagnostics', { serial });
+  }
+
+  public static async executeDiagnosticFixes(
+    serial: string,
+    deviceName: string,
+    packages: string[],
+    reboot: boolean
+  ): Promise<DiagnosticFixResult> {
+    if (!isTauriEnvironment()) {
+      return {
+        success: true,
+        snapshot_id: 'mock_diagnostic_snapshot_123',
+        disabled_packages: packages,
+        reboot_triggered: reboot,
+        message: reboot
+          ? 'Otomatik snapshot alındı, seçilen servisler kapatıldı ve cihaz yeniden başlatılıyor...'
+          : 'Otomatik snapshot alındı ve seçilen tüm şişkinlik servisleri kapatıldı.',
+      };
+    }
+
+    return await this.invoke<DiagnosticFixResult>('execute_diagnostic_fixes', {
+      serial,
+      deviceName,
+      packages,
+      reboot,
+    });
   }
 }

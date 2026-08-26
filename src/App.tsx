@@ -3,6 +3,7 @@ import { Sidebar, NavTab } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { BatchActionBar } from './components/layout/BatchActionBar';
 import { DashboardView } from './components/dashboard/DashboardView';
+import { DiagnosticView } from './components/diagnostics/DiagnosticView';
 import { ScreenMirrorView } from './components/mirror/ScreenMirrorView';
 import { ProfilesView } from './components/profiles/ProfilesView';
 import { TweaksView } from './components/tweaks/TweaksView';
@@ -26,6 +27,8 @@ export const App: React.FC = () => {
     switch (activeTab) {
       case 'dashboard':
         return <DashboardView onNavigate={(tab) => setActiveTab(tab)} />;
+      case 'diagnostics':
+        return <DiagnosticView />;
       case 'mirror':
         return <ScreenMirrorView />;
       case 'profiles':
