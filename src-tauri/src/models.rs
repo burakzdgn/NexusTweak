@@ -210,6 +210,8 @@ pub struct DetectedBloatProcess {
     pub package_name: String,
     pub app_name: String,
     pub description: String,
+    pub category: String,
+    pub is_safe_default: bool,
     pub cpu_time_info: Option<String>,
     pub is_running: bool,
     pub can_disable: bool,

@@ -18,6 +18,7 @@ interface DiagnosticState {
   runDiagnostics: () => Promise<void>;
   togglePackageSelection: (pkg: string) => void;
   selectAllPackages: () => void;
+  selectSafeOnly: () => void;
   clearPackageSelection: () => void;
   setRebootEnabled: (enabled: boolean) => void;
   executeFixes: () => Promise<boolean>;
@@ -39,8 +40,11 @@ export const useDiagnosticStore = create<DiagnosticState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const report = await AdbBridge.runDeepDiagnostics(activeSerial);
+      // Pre-select ONLY pure telemetry/ads. Companion & user apps (Mi Fitness, Mi Home, etc.) are UNCHECKED by default!
       const initialSelected = new Set(
-        report.detected_bloat_processes.map((p) => p.package_name)
+        report.detected_bloat_processes
+          .filter((p) => p.is_safe_default)
+          .map((p) => p.package_name)
       );
 
       set({
@@ -72,6 +76,18 @@ export const useDiagnosticStore = create<DiagnosticState>((set, get) => ({
         next.add(pkg);
       }
       return { selectedPackageNames: next };
+    });
+  },
+
+  selectSafeOnly: () => {
+    const report = get().report;
+    if (!report) return;
+    set({
+      selectedPackageNames: new Set(
+        report.detected_bloat_processes
+          .filter((p) => p.is_safe_default)
+          .map((p) => p.package_name)
+      ),
     });
   },
 

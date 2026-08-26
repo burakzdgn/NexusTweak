@@ -122,7 +122,7 @@ impl AdbCommands {
 
     /// Restore previously uninstalled system package
     pub async fn restore_package_user0(client: &AdbClient, serial: &str, package: &str) -> Result<AdbExecutionResult, String> {
-        let cmd = format!("pm install-existing --user 0 {}", package);
+        let cmd = format!("cmd package install-existing --user 0 {0} || pm install-existing --user 0 {0} || pm unhide --user 0 {0} || pm enable --user 0 {0}", package);
         client.shell(serial, &cmd).await
     }
 
@@ -142,7 +142,7 @@ impl AdbCommands {
     /// Re-enable package
     pub async fn enable_package(client: &AdbClient, serial: &str, package: &str) -> Result<AdbExecutionResult, String> {
         let _ = Self::restore_package_user0(client, serial, package).await;
-        let cmd = format!("pm enable {}", package);
+        let cmd = format!("pm enable --user 0 {0} || pm enable {0}", package);
         client.shell(serial, &cmd).await
     }
 

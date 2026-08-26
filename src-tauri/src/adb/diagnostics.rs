@@ -296,28 +296,35 @@ impl DiagnosticEngine {
         }
 
         let target_bloat_list = [
-            ("com.miui.daemon", "MIUI Daemon Telemetry", "Xiaomi arka plan sistem ve kullanım telemetrisi toplayıcısı"),
-            ("com.miui.powerkeeper", "Xiaomi PowerKeeper", "Arka planda gereksiz CPU tüketen agresif güç yöneticisi"),
-            ("com.miui.guardprovider", "Guard Provider", "Arka planda sürekli dosya ve antivirüs taraması yapan servis"),
-            ("com.mi.globalminusscreen", "App Vault (Eksi Ekran)", "Sürekli arka planda çalışan ve reklam besleyen eksi ekran"),
-            ("com.miui.android.fashiongallery", "Wallpaper Carousel", "Kilit ekranı haber ve sponsorlu görsel beslemesi"),
-            ("com.miui.msa.global", "MIUI System Ads (MSA)", "MIUI arayüz reklam motoru ve bildirim basıcı"),
-            ("com.xiaomi.mipicks", "GetApps Store", "Sponsorlu uygulama mağazası ve bildirim servisi"),
-            ("com.mi.globalbrowser", "Mi Browser (Global)", "Arama çubuğu reklamları ve telemetri içeren tarayıcı"),
-            ("com.facebook.services", "Facebook Services", "Facebook kullanılmasa bile arka planda çalışan senkronizasyon"),
-            ("com.facebook.system", "Facebook System", "Facebook sistem yükleyicisi ve arka plan yöneticisi"),
-            ("com.facebook.appmanager", "Facebook App Manager", "Facebook gömülü uygulama yöneticisi"),
-            ("com.amazon.appmanager", "Amazon App Manager", "Amazon arka plan telemetri ve indirme ajanı"),
-            ("cn.wps.xiaomi.abroad.lite", "WPS Office Lite", "Önceden yüklü WPS Office arka plan hizmetleri"),
-            ("com.xiaomi.wearable", "Xiaomi Wearable / Fitness", "Arka planda sürekli bellek tutan giyilebilir cihaz servisi"),
-            ("com.samsung.android.game.gos", "Samsung GOS", "Oyunlarda çözünürlük ve kare hızını düşüren kısıtlayıcı"),
-            ("com.sec.android.diagmonagent", "Samsung DiagMonAgent", "Samsung tanı ve telemetri raporlama ajanı"),
+            // Pure Telemetry & Ad Engines (Safe to remove by default)
+            ("com.miui.daemon", "MIUI Daemon Telemetry", "Xiaomi arka plan sistem ve kullanım telemetrisi toplayıcısı", "telemetry", true),
+            ("com.miui.msa.global", "MIUI System Ads (MSA)", "MIUI arayüz reklam motoru ve bildirim basıcı", "telemetry", true),
+            ("com.miui.android.fashiongallery", "Wallpaper Carousel", "Kilit ekranı haber ve sponsorlu görsel beslemesi", "telemetry", true),
+            ("com.miui.powerkeeper", "Xiaomi PowerKeeper", "Arka planda gereksiz CPU tüketen agresif güç yöneticisi", "telemetry", true),
+            ("com.miui.guardprovider", "Guard Provider", "Arka planda sürekli dosya ve antivirüs taraması yapan servis", "telemetry", true),
+            ("com.facebook.services", "Facebook Services", "Facebook kullanılmasa bile arka planda çalışan senkronizasyon", "telemetry", true),
+            ("com.facebook.system", "Facebook System", "Facebook sistem yükleyicisi ve arka plan yöneticisi", "telemetry", true),
+            ("com.facebook.appmanager", "Facebook App Manager", "Facebook gömülü uygulama yöneticisi", "telemetry", true),
+            ("com.amazon.appmanager", "Amazon App Manager", "Amazon arka plan telemetri ve indirme ajanı", "telemetry", true),
+            ("com.sec.android.diagmonagent", "Samsung DiagMonAgent", "Samsung tanı ve telemetri raporlama ajanı", "telemetry", true),
+            ("com.samsung.android.game.gos", "Samsung GOS", "Oyunlarda çözünürlük ve kare hızını düşüren kısıtlayıcı", "telemetry", true),
+            ("com.xiaomi.mipicks", "GetApps Store", "Sponsorlu uygulama mağazası ve bildirim servisi", "telemetry", true),
+
+            // User & Companion Apps (NEVER removed automatically - opt-in unchecked by default)
+            ("com.xiaomi.wearable", "Mi Fitness (Xiaomi Wearable)", "Akıllı saat ve bileklik eşlikçi uygulaması (Aktif kullanıyorsanız açık bırakınız)", "companion", false),
+            ("com.xiaomi.smarthome", "Mi Home (Akıllı Ev)", "Robot süpürge ve akıllı ev eşlikçi uygulaması (Aktif kullanıyorsanız açık bırakınız)", "companion", false),
+            ("com.mi.globalbrowser", "Mi Browser (Global)", "Xiaomi web tarayıcısı (Chrome/Brave kullanmıyorsanız açık bırakınız)", "companion", false),
+            ("com.miui.videoplayer", "Mi Video", "Xiaomi video oynatıcısı (Aktif kullanıyorsanız açık bırakınız)", "companion", false),
+            ("com.mi.globalminusscreen", "App Vault (Eksi Ekran)", "Ana ekran sol panel widget ve kısayol beslemesi", "companion", false),
+            ("cn.wps.xiaomi.abroad.lite", "WPS Office Lite", "Önceden yüklü WPS Office belge okuyucusu", "companion", false),
+            ("com.samsung.android.app.watchmanager", "Galaxy Wearable", "Samsung akıllı saat/bileklik eşlikçi uygulaması", "companion", false),
+            ("com.samsung.android.oneconnect", "Samsung SmartThings", "Samsung akıllı ev ve cihaz kontrol merkezi", "companion", false),
         ];
 
         let mut detected_bloat_processes = Vec::new();
         let mut packages_to_disable = Vec::new();
 
-        for (pkg, name, desc) in target_bloat_list {
+        for (pkg, name, desc, category, is_safe_default) in target_bloat_list {
             let is_running = running_processes_str.contains(&pkg.to_lowercase());
             let is_enabled = enabled_packages_user0.contains(pkg);
 
@@ -326,11 +333,16 @@ impl DiagnosticEngine {
                     package_name: pkg.to_string(),
                     app_name: name.to_string(),
                     description: desc.to_string(),
+                    category: category.to_string(),
+                    is_safe_default,
                     cpu_time_info: if is_running { Some("Arka planda aktif".into()) } else { Some("Yüklü (Etkin)".into()) },
                     is_running,
                     can_disable: true,
                 });
-                packages_to_disable.push(pkg.to_string());
+
+                if is_safe_default {
+                    packages_to_disable.push(pkg.to_string());
+                }
             }
         }
 

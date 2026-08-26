@@ -18,6 +18,8 @@ export interface DetectedBloatProcess {
   package_name: string;
   app_name: string;
   description: string;
+  category: string;
+  is_safe_default: boolean;
   cpu_time_info?: string;
   is_running: boolean;
   can_disable: boolean;

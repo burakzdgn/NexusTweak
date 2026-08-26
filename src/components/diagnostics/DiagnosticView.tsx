@@ -34,6 +34,7 @@ export const DiagnosticView: React.FC = () => {
     runDiagnostics,
     togglePackageSelection,
     selectAllPackages,
+    selectSafeOnly,
     clearPackageSelection,
     setRebootEnabled,
     executeFixes,
@@ -629,6 +630,12 @@ export const DiagnosticView: React.FC = () => {
 
                 <div className="flex items-center space-x-2">
                   <button
+                    onClick={selectSafeOnly}
+                    className="text-xs font-medium text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 cursor-pointer"
+                  >
+                    {lang === 'tr' ? '🛡️ Sadece Telemetriyi Seç' : '🛡️ Safe Telemetry Only'}
+                  </button>
+                  <button
                     onClick={selectAllPackages}
                     className="text-xs font-medium text-cyan-400 hover:text-cyan-300 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 cursor-pointer"
                   >
@@ -671,15 +678,40 @@ export const DiagnosticView: React.FC = () => {
                           <CheckCircle2 className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">
-                            {proc.app_name}
-                          </p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-semibold text-white truncate">
+                              {proc.app_name}
+                            </p>
+                            <span
+                              className={clsx(
+                                'text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0',
+                                proc.is_safe_default
+                                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                                  : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                              )}
+                            >
+                              {proc.is_safe_default
+                                ? lang === 'tr'
+                                  ? '🛡️ Saf Telemetri'
+                                  : '🛡️ Pure Telemetry'
+                                : lang === 'tr'
+                                ? '📱 Kullanıcı / Eşlikçi Uygulama'
+                                : '📱 Companion App'}
+                            </span>
+                          </div>
                           <p className="text-xs text-slate-400 font-mono truncate">
                             {proc.package_name}
                           </p>
                           <p className="text-[11px] text-slate-400 mt-0.5 truncate">
                             {proc.description}
                           </p>
+                          {!proc.is_safe_default && (
+                            <p className="text-[10px] text-amber-300/90 font-medium mt-1">
+                              {lang === 'tr'
+                                ? '⚠️ Akıllı saat, bileklik veya akıllı ev cihazı kullanıyorsanız işaretlemeyiniz.'
+                                : '⚠️ Do not check if you use wearable/smart-home companion features.'}
+                            </p>
+                          )}
                         </div>
                       </div>
 

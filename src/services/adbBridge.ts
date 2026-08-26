@@ -558,12 +558,13 @@ export class AdbBridge {
           { name: 'com.miui.guardprovider', pid: 4890, cpu_percent: 3.1, user_or_system: 'System' },
         ],
         detected_bloat_processes: [
-          { package_name: 'com.miui.daemon', app_name: 'MIUI Daemon Telemetry', description: 'Xiaomi arka plan sistem ve kullanım telemetrisi toplayıcısı', cpu_time_info: '22+ saat CPU', is_running: true, can_disable: true },
-          { package_name: 'com.miui.powerkeeper', app_name: 'Xiaomi PowerKeeper', description: 'Arka planda gereksiz CPU tüketen agresif güç yöneticisi', cpu_time_info: '23+ saat CPU', is_running: true, can_disable: true },
-          { package_name: 'com.miui.android.fashiongallery', app_name: 'Wallpaper Carousel', description: 'Kilit ekranı haber ve sponsorlu görsel beslemesi', cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
-          { package_name: 'com.facebook.services', app_name: 'Facebook Services', description: 'Facebook kullanılmasa bile arka planda çalışan senkronizasyon', cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
-          { package_name: 'com.amazon.appmanager', app_name: 'Amazon App Manager', description: 'Amazon arka plan telemetri ve indirme ajanı', cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
-          { package_name: 'com.miui.msa.global', app_name: 'MIUI System Ads (MSA)', description: 'MIUI arayüz reklam motoru ve bildirim basıcı', cpu_time_info: 'Yüklü (Etkin)', is_running: true, can_disable: true },
+          { package_name: 'com.miui.daemon', app_name: 'MIUI Daemon Telemetry', description: 'Xiaomi arka plan sistem ve kullanım telemetrisi toplayıcısı', category: 'telemetry', is_safe_default: true, cpu_time_info: '22+ saat CPU', is_running: true, can_disable: true },
+          { package_name: 'com.miui.powerkeeper', app_name: 'Xiaomi PowerKeeper', description: 'Arka planda gereksiz CPU tüketen agresif güç yöneticisi', category: 'telemetry', is_safe_default: true, cpu_time_info: '23+ saat CPU', is_running: true, can_disable: true },
+          { package_name: 'com.miui.android.fashiongallery', app_name: 'Wallpaper Carousel', description: 'Kilit ekranı haber ve sponsorlu görsel beslemesi', category: 'telemetry', is_safe_default: true, cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
+          { package_name: 'com.facebook.services', app_name: 'Facebook Services', description: 'Facebook kullanılmasa bile arka planda çalışan senkronizasyon', category: 'telemetry', is_safe_default: true, cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
+          { package_name: 'com.amazon.appmanager', app_name: 'Amazon App Manager', description: 'Amazon arka plan telemetri ve indirme ajanı', category: 'telemetry', is_safe_default: true, cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
+          { package_name: 'com.miui.msa.global', app_name: 'MIUI System Ads (MSA)', description: 'MIUI arayüz reklam motoru ve bildirim basıcı', category: 'telemetry', is_safe_default: true, cpu_time_info: 'Yüklü (Etkin)', is_running: true, can_disable: true },
+          { package_name: 'com.xiaomi.wearable', app_name: 'Mi Fitness (Xiaomi Wearable)', description: 'Akıllı saat ve bileklik eşlikçi uygulaması', category: 'companion', is_safe_default: false, cpu_time_info: 'Arka planda aktif', is_running: true, can_disable: true },
         ],
         fix_actions: [
           {
