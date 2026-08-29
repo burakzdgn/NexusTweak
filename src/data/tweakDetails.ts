@@ -83,15 +83,15 @@ export const TWEAK_DETAILS: Record<'tr' | 'en', Record<string, TweakDetailInfo>>
     },
     gen_aggressive_doze: {
       title: 'Agresif Doze & Derin Uyku Modu',
-      summary: 'Ekran kapandığında telefonun derin uyku (Doze) moduna çok daha hızlı geçmesini sağlayarak bekleme süresi pil tüketimini düşürür.',
-      howItWorks: 'Android varsayılan olarak ekran kapandıktan sonra 30 dakika hareket sensörlerini bekler. Bu ayar `device_idle_constants` parametrelerini optimize ederek bekleme süresini 5 dakikaya indirir.',
+      summary: 'Ekran kapandığında telefonun derin uyku (Doze) moduna çok daha hızlı geçmesini sağlayarak bekleme süresi pil tüketimini düşürür. (DİKKAT: WhatsApp/Instagram bildirimlerini geciktirebilir)',
+      howItWorks: 'Android varsayılan olarak ekran kapandıktan sonra 30 dakika hareket sensörlerini bekler. Bu ayar `device_idle_constants` parametrelerini optimize ederek bekleme süresini 2 dakikaya indirir ve arka plan soketlerini dondurur.',
       benefits: [
         'Gece telefon boştayken şarjın %1-2\'den fazla düşmesini engeller.',
         'Ekran kapalıyken arka planda gereksiz uyanan (wakelock) uygulamaları frenler.',
-        'Cihazın ısınmasını ve boşta batarya boşalmasını önler.',
+        'Cihazın cepte veya masada boştayken ısınmasını ve batarya boşalmasını önler.',
       ],
-      considerations: 'WhatsApp ve Telegram gibi yüksek öncelikli bildirimler gelmeye devam eder; ancak bazı düşük öncelikli arka plan senkronizasyonları ekran açılana kadar ertelenebilir.',
-      reversibility: 'Tek tıkla Android standart Doze zamanlamasına geri döndürülebilir.',
+      considerations: '⚠️ ÖNEMLİ BİLDİRİM UYARISI: Bu ayar ekran kapalıyken arka plan internet ve senkronizasyon soketlerini dondurur. WhatsApp, Instagram, Telegram gibi uygulamaların bildirimleri ekranı açana veya uygulamaya girene kadar gecikebilir ya da gelmeyebilir. Anlık bildirim almak sizin için kritikse bu ayarı KULLANMAYINIZ. (Bu ayarı kullanmamak optimizasyon puanınızı düşürmez).',
+      reversibility: 'Tek tıkla "Geri Al" butonuna basılarak Android standart Doze zamanlamasına anında geri döndürülebilir.',
     },
     gen_disable_window_blurs: {
       title: 'Gerçek Zamanlı UI Bulanıklıklarını Kapat',
@@ -337,14 +337,14 @@ export const TWEAK_DETAILS: Record<'tr' | 'en', Record<string, TweakDetailInfo>>
     },
     gen_aggressive_doze: {
       title: 'Aggressive Doze & Deep Sleep Mode',
-      summary: 'Forces the device to enter deep sleep battery saving mode much faster when the screen turns off.',
-      howItWorks: 'Optimizes `device_idle_constants` to transition into Doze deep sleep within 5 minutes instead of the default 30 minutes.',
+      summary: 'Forces the device to enter deep sleep battery saving mode much faster when the screen turns off. (NOTICE: May delay WhatsApp/Instagram notifications)',
+      howItWorks: 'Android defaults to waiting 30 minutes with active motion sensors before entering deep Doze. This tweak tunes `device_idle_constants` to enter deep sleep in 2 minutes, freezing background wakeups.',
       benefits: [
         'Reduces overnight standby battery drain to less than 1-2%.',
         'Stops runaway background wakelocks while the phone is in your pocket.',
         'Keeps the device cool while idle.',
       ],
-      considerations: 'High-priority notifications (WhatsApp, Telegram) arrive normally; lower-priority sync may be batched until screen-on.',
+      considerations: '⚠️ IMPORTANT NOTIFICATION NOTICE: Freezes background data and sync sockets while the screen is turned off. Push notifications from apps like WhatsApp, Instagram, and Telegram may be delayed or arrive only after unlocking the screen or opening the app. If timely notifications are critical, DO NOT enable this tweak. (Leaving this tweak disabled will NOT lower your optimization score).',
       reversibility: 'Reverts back to standard Android Doze timing with one click.',
     },
     gen_disable_window_blurs: {

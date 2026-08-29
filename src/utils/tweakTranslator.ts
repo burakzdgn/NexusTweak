@@ -44,7 +44,7 @@ export function translateTweakRule(rule: TweakRule, lang: 'tr' | 'en'): Translat
     },
     gen_aggressive_doze: {
       name: 'Agresif Doze & Derin Uyku',
-      description: 'Cihaz boşta kalma parametrelerini optimize ederek ekran kapandığında derin uyku pil tasarrufu moduna çok daha hızlı geçmesini sağlar.',
+      description: 'Ekran kapandığında derin uyku pil tasarrufu moduna hızlıca geçer. (⚠️ Dikkat: WhatsApp/Instagram bildirimleri ekran açılana kadar gecikebilir).',
     },
     gen_disable_window_blurs: {
       name: 'Gerçek Zamanlı UI Bulanıklıklarını Kapat',
@@ -179,7 +179,7 @@ export function translateProfile(profile: OptimizationProfile, lang: 'tr' | 'en'
     },
     battery_extreme: {
       name: 'Aşırı Pil Tasarrufu',
-      description: 'Ekranı standart 60Hz\'e sabitler, agresif Doze derin uyku modunu etkinleştirir, Wi-Fi tarama kısıtlamasını açar ve arka plan telemetrisini durdurur.',
+      description: 'Ekranı standart 60Hz\'e sabitler, agresif Doze derin uyku modunu etkinleştirir (anlık bildirimler gecikebilir), Wi-Fi tarama kısıtlamasını açar ve arka plan telemetrisini durdurur.',
     },
     privacy_hardened: {
       name: 'Maksimum Gizlilik & Reklam Engelleyici',

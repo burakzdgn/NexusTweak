@@ -458,26 +458,17 @@ impl RuleEngine {
             recommendations.push("Enable AdGuard or Cloudflare Private DNS to block trackers & ads".to_string());
         }
 
-        // 4. Live Check Doze / Battery Constants & Wi-Fi Scan Throttling
-        let doze_constants = settings_global.get("device_idle_constants").map(|s| s.as_str()).unwrap_or("");
-        let is_doze_aggressive = doze_constants.contains("inactive_to")
-            || applied_tweaks.contains(&"gen_aggressive_doze".to_string());
-
+        // 4. Live Check Battery & Wi-Fi Scan Throttling
+        // Note: Aggressive Doze is an optional power-saving tweak that may delay messaging notifications (e.g. WhatsApp, Instagram).
+        // To prevent penalizing standard notification delivery, not using Aggressive Doze does NOT reduce the score.
         let wifi_throttle = settings_global.get("wifi_scan_throttle_enabled").map(|s| s.as_str()).unwrap_or("1");
         let is_wifi_optimized = wifi_throttle == "0"
             || applied_tweaks.contains(&"gen_wifi_scan_throttling_disable".to_string());
 
-        if is_doze_aggressive && is_wifi_optimized {
+        if is_wifi_optimized {
             battery_score = 100;
-        } else if is_doze_aggressive {
-            battery_score = 90;
-            recommendations.push("Disable Wi-Fi background scan throttling to optimize standby power".to_string());
-        } else if is_wifi_optimized {
-            battery_score = 85;
-            recommendations.push("Enable Aggressive Doze for enhanced standby battery savings".to_string());
         } else {
-            battery_score = 70;
-            recommendations.push("Enable Aggressive Doze for enhanced standby battery savings".to_string());
+            battery_score = 90;
             recommendations.push("Disable Wi-Fi background scan throttling to optimize standby power".to_string());
         }
 

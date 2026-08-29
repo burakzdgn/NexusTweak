@@ -122,7 +122,7 @@ export const GENERIC_TWEAKS: TweakRule[] = [
   {
     id: 'gen_aggressive_doze',
     name: 'Aggressive Doze & Deep Sleep',
-    description: 'Tunes device_idle constants to enter deep sleep battery saving mode faster when the screen is turned off.',
+    description: 'Tunes device_idle constants to enter deep sleep battery saving mode faster when the screen is turned off. (Caution: May delay WhatsApp/Instagram push notifications while screen is off)',
     category: 'battery',
     risk: 'Moderate',
     targetOem: 'generic',
@@ -134,7 +134,7 @@ export const GENERIC_TWEAKS: TweakRule[] = [
     revertCommands: ['settings delete global device_idle_constants'],
     verifyCommand: 'settings get global device_idle_constants',
     expectedValue: 'inactive_to=120000',
-    tags: ['battery', 'doze', 'standby'],
+    tags: ['battery', 'doze', 'standby', 'notification-impact'],
   },
   {
     id: 'gen_disable_window_blurs',
